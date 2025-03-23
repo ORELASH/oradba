@@ -1,2 +1,0 @@
-# oradba
-tool for OraDba 
