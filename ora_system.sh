@@ -2,14 +2,17 @@
 # ======================================================================
 # Oracle DBA Diagnostic Tool - System Metrics
 # ======================================================================
-# Version: 3.0
+# Version: 3.1
 # Description: Functions for collecting system metrics for AIX/Linux
 # Usage: Source this file or run standalone with ./ora_system.sh
 # Dependencies: ora_common.sh
 # ======================================================================
 
 # Find script directory for proper module sourcing
-SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+if [ -z "$SCRIPT_DIR" ]; then
+    SCRIPT_DIR="."
+fi
 
 # Check if common functions are already loaded
 if [ -z "$TEMP_DIR" ] || [ -z "$LOG_FILE" ]; then
@@ -36,13 +39,14 @@ display_system_metrics() {
         echo -e "\n${YELLOW}AIX VERSION AND UPTIME:${NC}"
         echo -e "$(oslevel -s) - Up $(uptime | awk -F, '{print $1}' | awk '{$1=$2=""; print $0}')"
         
-        # System model
+        # System model - AIX-safe grep
         echo -e "\n${YELLOW}SYSTEM MODEL:${NC}"
-        prtconf | grep "System Model" 
+        prtconf | grep "System Model"
         
-        # Number of CPUs and Memory
+        # Number of CPUs and Memory - AIX-safe grep with individual commands
         echo -e "\n${YELLOW}CPU AND MEMORY:${NC}"
-        prtconf | grep -E "Number Of Processors|Good Memory Size" | sed 's/Good //'
+        prtconf | grep "Number Of Processors"
+        prtconf | grep "Good Memory Size" | sed 's/Good //'
         
         # AIX Resource Metrics
         echo -e "\n${YELLOW}RESOURCE METRICS:${NC}"
@@ -52,11 +56,11 @@ display_system_metrics() {
         # Disk usage with warning for filesystems over threshold
         echo -e "\n${YELLOW}DISK USAGE:${NC}"
         echo -e "Warning level set to $MOUNT_WARNING_THRESHOLD% usage"
-        df -g | awk -v threshold=$MOUNT_WARNING_THRESHOLD 'NR==1 {print; next} {used=$4/$3*100; color=""; reset=""; if (used > threshold) {color="\033[0;31m"; reset="\033[0m"}; printf "%s%s%s\n", color, $0, reset}'
+        df -g | awk -v threshold=$MOUNT_WARNING_THRESHOLD 'NR==1 {print; next} {used=$4/$3*100; if (used > threshold) {printf "*** WARNING *** "}; print $0}'
         
         # Process info
         echo -e "\n${YELLOW}TOP CPU PROCESSES:${NC}"
-        ps -eo user,pid,pcpu,pmem,vsz,args | sort -k3 -r | head -$MAX_TOP_PROCESSES
+        ps -eo user,pid,pcpu,pmem,vsz,args | sort -r -k 3 | head -$MAX_TOP_PROCESSES
         
         # Memory details
         echo -e "\n${YELLOW}MEMORY USAGE DETAILS:${NC}"
@@ -74,18 +78,28 @@ display_system_metrics() {
         echo -e "\n${YELLOW}NETWORK INTERFACES:${NC}"
         netstat -in
         
-        # Network errors
+        # Network errors - Avoid complex grep with multiple patterns
         echo -e "\n${YELLOW}NETWORK ERRORS:${NC}"
         for IFACE in $(ifconfig -a | grep '^en' | awk '{print $1}'); do
             echo -e "Interface $IFACE stats:"
-            entstat -d $IFACE | grep -i "error\|collision\|drop\|miss\|crc"
+            # Use multiple simple greps instead of complex patterns
+            echo "Errors:"
+            entstat -d $IFACE | grep -i "error"
+            echo "Collisions:"
+            entstat -d $IFACE | grep -i "collision"
+            echo "Drops:"
+            entstat -d $IFACE | grep -i "drop"
+            echo "Misses:"
+            entstat -d $IFACE | grep -i "miss"
+            echo "CRC errors:"
+            entstat -d $IFACE | grep -i "crc"
         done
         
         # Check AIX tuning parameters for Oracle
         check_aix_tuning
         
     else
-        # Linux-specific metrics
+        # Linux-specific metrics (no changes needed)
         echo -e "\n${YELLOW}UPTIME AND LOAD:${NC}"
         uptime
         
@@ -150,19 +164,27 @@ check_aix_tuning() {
     done
     
     echo -e "\n${YELLOW}JFS/JFS2 PARAMETERS:${NC}"
-    mount | grep -E 'jfs|jfs2' | awk '{print $1, $3}' | while read FS TYPE; do
+    # Use a safer approach for AIX JFS parameters
+    mount | grep jfs > /tmp/jfs_mounts.tmp
+    mount | grep jfs2 >> /tmp/jfs_mounts.tmp
+    
+    cat /tmp/jfs_mounts.tmp | awk '{print $1, $3}' | while read FS TYPE; do
         echo -e "Filesystem: $FS - Type: $TYPE"
         if [ "$TYPE" = "jfs2" ]; then
-            mount | grep $FS | grep -o -E 'cio|dio|agblksize'
+            # Use individual greps instead of compound pattern
+            mount | grep $FS | grep cio
+            mount | grep $FS | grep dio
+            mount | grep $FS | grep agblksize
         fi
     done
+    rm -f /tmp/jfs_mounts.tmp
     
     echo -e "\n${YELLOW}ASYNCHRONOUS I/O:${NC}"
     lsdev -C | grep aio
     lsattr -El aio0
 }
 
-# Function to check Linux specific Oracle tuning parameters
+# Function to check Linux specific Oracle tuning parameters (unchanged)
 check_linux_tuning() {
     echo -e "\n${YELLOW}LINUX PERFORMANCE TUNING PARAMETERS FOR ORACLE:${NC}"
     echo -e "${YELLOW}KERNEL PARAMETERS:${NC}"
@@ -186,6 +208,13 @@ check_linux_tuning() {
     done
 }
 
+# Check if this script is sourced or run directly
+# More reliable method for standalone detection
+is_module_standalone() {
+    # If the BASH_SOURCE and $0 are the same, then this script is being run directly
+    [[ "${BASH_SOURCE[0]}" == "${0}" ]]
+}
+
 # Check if this module is being run directly (standalone)
 if is_module_standalone; then
     # If run directly, perform system metrics check
@@ -194,6 +223,36 @@ if is_module_standalone; then
     echo -e "${YELLOW}Running as: $(whoami) on $(hostname) - OS: $OS_TYPE${NC}"
     echo -e "${YELLOW}Date: $(date)${NC}"
     echo ""
+    
+    # Detect OS type if not already set
+    if [ -z "$OS_TYPE" ]; then
+        OS_TYPE=$(uname -s)
+        if [ "$OS_TYPE" = "AIX" ]; then
+            IS_AIX=1
+        else
+            IS_AIX=0
+        fi
+    fi
+    
+    # Set default values if not defined in ora_common.sh
+    if [ -z "$MOUNT_WARNING_THRESHOLD" ]; then
+        MOUNT_WARNING_THRESHOLD=80
+    fi
+    
+    if [ -z "$MAX_TOP_PROCESSES" ]; then
+        MAX_TOP_PROCESSES=10
+    fi
+    
+    if [ -z "$IO_SAMPLES" ]; then
+        IO_SAMPLES=3
+    fi
+    
+    # Define colors if not already defined
+    if [ -z "$GREEN" ]; then
+        GREEN='\033[0;32m'
+        YELLOW='\033[0;33m'
+        NC='\033[0m' # No Color
+    fi
     
     display_system_metrics
 fi
