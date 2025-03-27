@@ -5,46 +5,40 @@
  * It measures one-way latency, round-trip time (RTT), jitter, and packet loss between network endpoints.
  * 
  * AIX Compatibility:
- * Compile with: xlc -o netperf combined-latency-jitter.c -lm
+ * Compile with: gcc -O2 -std=gnu99 -o netperf combined-latency-jitter.c -lm
  * 
  * Usage:
  *   Server mode: ./netperf -s [-p port] [-u] [-6]
  *   Client mode: ./netperf -c server_ip [-p port] [-u] [-n num_packets] [-d delay_ms] [-l packet_size] 
  *                          [-r rate] [-o output_file] [-6] [-t]
- * 
- * Features:
- * - Both TCP and UDP protocol support
- * - IPv4 and IPv6 support
- * - High-precision timestamp-based measurements
- * - Detailed statistics including min/max/avg latency and jitter
- * - Variable packet sizes for bandwidth testing
- * - Adjustable sending rate for stress testing
- * - PTP-inspired clock synchronization option
- * - Optional CSV output for further analysis
  */
 
+/* Order of includes is important for AIX with GCC to avoid conflicts */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+
+/* AIX-specific definitions */
+#ifdef _AIX
+#include <sys/machine.h>  /* For byte-order functions specific to AIX */
+#endif
+
+/* Network includes */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+
+/* Additional includes */
 #include <time.h>
 #include <math.h>
 #include <signal.h>
-// getopt.h removed for AIX with GCC
-#include <errno.h>
-#include <netdb.h>
-#include <pthread.h>
 #include <fcntl.h>
-
-/* AIX-specific includes and definitions */
-#ifdef _AIX
-#include <sys/machine.h>  /* For byte-order functions specific to AIX */
-#endif
+#include <pthread.h>
 
 // Default parameters
 #define DEFAULT_PORT 8888
@@ -58,6 +52,12 @@
 // Protocol settings
 #define PROTOCOL_TCP 0
 #define PROTOCOL_UDP 1
+
+// Function declarations (forward declarations to avoid implicit function warnings)
+void run_tcp_server(struct config_t* config);
+void run_udp_server(struct config_t* config);
+void run_tcp_client(struct config_t* config);
+void run_udp_client(struct config_t* config);
 
 // Global variables for signal handling
 int running = 1;
@@ -75,7 +75,7 @@ typedef struct {
 } packet_t;
 
 // Test configuration structure
-typedef struct {
+typedef struct config_t {
     int is_server;
     char server_ip[128];     // Support for IPv6 addresses
     int port;
@@ -724,379 +724,4 @@ void run_tcp_client(config_t* config) {
                                   (actual_delay_us / 1000000.0);
         double throughput_bps = (packets_received * config->packet_size * 8) / test_duration_sec;
         
-        // Print summary statistics
-        printf("\n--- Latency and Jitter Summary (TCP) ---\n");
-        printf("Test configuration:\n");
-        printf("  Protocol: TCP over %s\n", config->use_ipv6 ? "IPv6" : "IPv4");
-        printf("  Packet size: %d bytes\n", config->packet_size);
-        printf("  Packets sent: %d\n", config->num_packets);
-        printf("  Packets received: %d\n", packets_received);
-        printf("  Packet loss: %.2f%%\n", packet_loss);
-        printf("\n");
-        printf("One-way Latency:\n");
-        printf("  Minimum: %.3f ms\n", min_latency / 1000);
-        printf("  Maximum: %.3f ms\n", max_latency / 1000);
-        printf("  Average: %.3f ms\n", avg_latency / 1000);
-        printf("  Jitter (std deviation): %.3f ms\n", jitter / 1000);
-        printf("\n");
-        printf("Round-Trip Time (RTT):\n");
-        printf("  Minimum: %.3f ms\n", min_rtt / 1000);
-        printf("  Maximum: %.3f ms\n", max_rtt / 1000);
-        printf("  Average: %.3f ms\n", avg_rtt / 1000);
-        printf("\n");
-        printf("Throughput:\n");
-        printf("  Average: %.2f Kbps (%.2f Mbps)\n", 
-               throughput_bps / 1000, throughput_bps / 1000000);
-    } else {
-        printf("No packets were successfully exchanged\n");
-    }
-    
-    // Close file if open
-    if (csv_file != NULL) {
-        fclose(csv_file);
-        printf("\nResults saved to %s\n", config->output_file);
-    }
-    
-    // Clean up
-    free(packet);
-    free(latencies);
-    free(rtts);
-    close(sock);
-}
-
-/**
- * Client implementation - UDP protocol
- */
-void run_udp_client(config_t* config) {
-    int sock = 0;
-    struct sockaddr_storage server_addr;
-    socklen_t addr_len;
-    packet_t* packet;
-    double* latencies;
-    double* rtts;
-    int packets_received = 0;
-    FILE* csv_file = NULL;
-    int64_t clock_offset = 0;
-    
-    // Allocate memory for statistics
-    latencies = malloc(config->num_packets * sizeof(double));
-    rtts = malloc(config->num_packets * sizeof(double));
-    
-    if (latencies == NULL || rtts == NULL) {
-        perror("Memory allocation failed");
-        exit(EXIT_FAILURE);
-    }
-    
-    // Open output file if specified
-    if (config->output_file[0] != '\0') {
-        csv_file = fopen(config->output_file, "w");
-        if (csv_file == NULL) {
-            perror("Failed to open output file");
-            exit(EXIT_FAILURE);
-        }
-        fprintf(csv_file, "seq_num,packet_size,one_way_latency_us,rtt_us,server_processing_us\n");
-    }
-    
-    // Create socket
-    sock = socket(config->use_ipv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
-        perror("Socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-    
-    // Setup address structure
-    addr_len = init_socket_address(&server_addr, config->server_ip, config->port, config->use_ipv6);
-    if (addr_len < 0) {
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
-    
-    printf("Using UDP protocol over %s to server %s:%d\n", 
-           config->use_ipv6 ? "IPv6" : "IPv4", config->server_ip, config->port);
-    
-    // Perform clock synchronization if enabled
-    if (config->time_sync) {
-        // For UDP, we need to "connect" the socket to the server first for synchronization
-        if (connect(sock, (struct sockaddr*)&server_addr, addr_len) < 0) {
-            perror("UDP connect for synchronization failed");
-            close(sock);
-            exit(EXIT_FAILURE);
-        }
-        
-        clock_offset = synchronize_clocks(sock, 1, PROTOCOL_UDP);
-    }
-    
-    // Allocate packet with specified size
-    packet = create_packet(config->packet_size);
-    
-    printf("Sending %d packets of size %d bytes with %d ms delay (or rate of %d pps)\n", 
-           config->num_packets, config->packet_size, config->delay_ms, config->rate_pps);
-    printf("Measuring latency and jitter...\n\n");
-    
-    // Calculate delay between packets based on rate or delay setting
-    int actual_delay_us;
-    if (config->rate_pps > 0) {
-        actual_delay_us = 1000000 / config->rate_pps;
-    } else {
-        actual_delay_us = config->delay_ms * 1000;
-    }
-    
-    // For UDP, set a reasonable timeout
-#ifdef _AIX
-    /* AIX might use a different socket option setting method */
-    struct timeval tv;
-    tv.tv_sec = 1;  // 1 second timeout
-    tv.tv_usec = 0;
-    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv)) < 0) {
-        perror("Setting socket timeout failed");
-    }
-#else
-    struct timeval tv;
-    tv.tv_sec = 1;  // 1 second timeout
-    tv.tv_usec = 0;
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-#endif
-    
-    // Send packets and measure response time
-    for (int i = 0; i < config->num_packets && running; i++) {
-        // Prepare packet
-        packet->seq_num = i + 1;
-        packet->client_send = get_timestamp_usec();
-        packet->server_recv = 0;
-        packet->server_send = 0;
-        
-        // Send packet to server
-        int sent = sendto(sock, packet, packet->packet_size, 0, 
-                         (struct sockaddr*)&server_addr, addr_len);
-        if (sent < 0) {
-            perror("UDP send failed");
-            continue;
-        }
-        
-        // Receive response from server
-        int bytes_received = recvfrom(sock, packet, packet->packet_size, 0, NULL, NULL);
-        if (bytes_received <= 0) {
-            printf("Packet %d: No response (timeout)\n", i + 1);
-            continue;
-        }
-        
-        // Record reception time
-        packet->client_recv = get_timestamp_usec();
-        
-        // Validate packet
-        if (!validate_packet(packet) || packet->seq_num != (i + 1)) {
-            printf("Warning: Received invalid or out-of-sequence packet\n");
-            continue;
-        }
-        
-        // Calculate measurements with clock offset correction
-        double server_processing = packet->server_send - packet->server_recv;
-        double rtt = packet->client_recv - packet->client_send;
-        
-        // Adjust for clock offset if synchronization was performed
-        double one_way_latency;
-        if (config->time_sync) {
-            // Direct calculation using synchronized timestamps
-            one_way_latency = (packet->server_recv - clock_offset) - packet->client_send;
-        } else {
-            // Estimate using RTT
-            one_way_latency = (rtt - server_processing) / 2.0;
-        }
-        
-        // Store results
-        latencies[packets_received] = one_way_latency;
-        rtts[packets_received] = rtt;
-        packets_received++;
-        
-        printf("Packet %lu (%d bytes): One-way Latency = %.3f ms, RTT = %.3f ms\n", 
-               packet->seq_num, packet->packet_size, one_way_latency / 1000, rtt / 1000);
-        
-        // Write to CSV if enabled
-        if (csv_file != NULL) {
-            fprintf(csv_file, "%lu,%d,%.3f,%.3f,%.3f\n", 
-                    packet->seq_num, packet->packet_size, one_way_latency, rtt, server_processing);
-        }
-        
-        // Delay before sending next packet
-        usleep(actual_delay_us);
-    }
-    
-    // Calculate statistics
-    if (packets_received > 0) {
-        // Initialize statistics
-        double total_latency = 0;
-        double min_latency = latencies[0];
-        double max_latency = latencies[0];
-        double avg_latency = 0;
-        double jitter = 0;
-        double std_dev = 0;
-        
-        double total_rtt = 0;
-        double min_rtt = rtts[0];
-        double max_rtt = rtts[0];
-        double avg_rtt = 0;
-        
-        // Calculate min, max, avg
-        for (int i = 0; i < packets_received; i++) {
-            // Latency stats
-            total_latency += latencies[i];
-            if (latencies[i] < min_latency) min_latency = latencies[i];
-            if (latencies[i] > max_latency) max_latency = latencies[i];
-            
-            // RTT stats
-            total_rtt += rtts[i];
-            if (rtts[i] < min_rtt) min_rtt = rtts[i];
-            if (rtts[i] > max_rtt) max_rtt = rtts[i];
-        }
-        
-        avg_latency = total_latency / packets_received;
-        avg_rtt = total_rtt / packets_received;
-        
-        // Calculate jitter (standard deviation of latencies)
-        for (int i = 0; i < packets_received; i++) {
-            std_dev += pow(latencies[i] - avg_latency, 2);
-        }
-        std_dev = sqrt(std_dev / packets_received);
-        jitter = std_dev;
-        
-        // Calculate packet loss
-        double packet_loss = 100.0 * (config->num_packets - packets_received) / config->num_packets;
-        
-        // Calculate throughput (bits per second)
-        double test_duration_sec = (rtts[packets_received-1] - rtts[0]) / 1000000.0 + 
-                                  (actual_delay_us / 1000000.0);
-        double throughput_bps = (packets_received * config->packet_size * 8) / test_duration_sec;
-        
-        // Print summary statistics
-        printf("\n--- Latency and Jitter Summary (UDP) ---\n");
-        printf("Test configuration:\n");
-        printf("  Protocol: UDP over %s\n", config->use_ipv6 ? "IPv6" : "IPv4");
-        printf("  Packet size: %d bytes\n", config->packet_size);
-        printf("  Packets sent: %d\n", config->num_packets);
-        printf("  Packets received: %d\n", packets_received);
-        printf("  Packet loss: %.2f%%\n", packet_loss);
-        printf("\n");
-        printf("One-way Latency:\n");
-        printf("  Minimum: %.3f ms\n", min_latency / 1000);
-        printf("  Maximum: %.3f ms\n", max_latency / 1000);
-        printf("  Average: %.3f ms\n", avg_latency / 1000);
-        printf("  Jitter (std deviation): %.3f ms\n", jitter / 1000);
-        printf("\n");
-        printf("Round-Trip Time (RTT):\n");
-        printf("  Minimum: %.3f ms\n", min_rtt / 1000);
-        printf("  Maximum: %.3f ms\n", max_rtt / 1000);
-        printf("  Average: %.3f ms\n", avg_rtt / 1000);
-        printf("\n");
-        printf("Throughput:\n");
-        printf("  Average: %.2f Kbps (%.2f Mbps)\n", 
-               throughput_bps / 1000, throughput_bps / 1000000);
-    } else {
-        printf("No packets were successfully exchanged\n");
-    }
-    
-    // Close file if open
-    if (csv_file != NULL) {
-        fclose(csv_file);
-        printf("\nResults saved to %s\n", config->output_file);
-    }
-    
-    // Clean up
-    free(packet);
-    free(latencies);
-    free(rtts);
-    close(sock);
-}
-
-int main(int argc, char *argv[]) {
-    int opt;
-    config_t config;
-    
-    // Set default configuration
-    memset(&config, 0, sizeof(config_t));
-    config.port = DEFAULT_PORT;
-    config.protocol = PROTOCOL_TCP;
-    config.use_ipv6 = 0;
-    config.num_packets = DEFAULT_NUM_PACKETS;
-    config.delay_ms = DEFAULT_DELAY_MS;
-    config.packet_size = DEFAULT_PACKET_SIZE;
-    config.rate_pps = DEFAULT_RATE_PPS;
-    config.time_sync = 0;
-    
-    // Setup signal handling
-    signal(SIGINT, handle_signal);
-    signal(SIGTERM, handle_signal);
-    
-    // Parse command line arguments
-    while ((opt = getopt(argc, argv, "sc:p:un:d:l:r:o:6th")) != -1) {
-        switch (opt) {
-            case 's':
-                config.is_server = 1;
-                break;
-            case 'c':
-                config.is_server = 0;
-                strncpy(config.server_ip, optarg, sizeof(config.server_ip) - 1);
-                break;
-            case 'p':
-                config.port = atoi(optarg);
-                break;
-            case 'u':
-                config.protocol = PROTOCOL_UDP;
-                break;
-            case 'n':
-                config.num_packets = atoi(optarg);
-                break;
-            case 'd':
-                config.delay_ms = atoi(optarg);
-                break;
-            case 'l':
-                config.packet_size = atoi(optarg);
-                if (config.packet_size < MIN_PACKET_SIZE) {
-                    config.packet_size = MIN_PACKET_SIZE;
-                } else if (config.packet_size > MAX_PACKET_SIZE) {
-                    config.packet_size = MAX_PACKET_SIZE;
-                }
-                break;
-            case 'r':
-                config.rate_pps = atoi(optarg);
-                break;
-            case 'o':
-                strncpy(config.output_file, optarg, sizeof(config.output_file) - 1);
-                break;
-            case '6':
-                config.use_ipv6 = 1;
-                break;
-            case 't':
-                config.time_sync = 1;
-                break;
-            case 'h':
-                print_usage(argv[0]);
-                exit(EXIT_SUCCESS);
-            default:
-                print_usage(argv[0]);
-                exit(EXIT_FAILURE);
-        }
-    }
-    
-    // Validate arguments
-    if (config.is_server) {
-        // Run in server mode
-        if (config.protocol == PROTOCOL_TCP) {
-            run_tcp_server(&config);
-        } else {
-            run_udp_server(&config);
-        }
-    } else if (config.server_ip[0] != '\0') {
-        // Run in client mode
-        if (config.protocol == PROTOCOL_TCP) {
-            run_tcp_client(&config);
-        } else {
-            run_udp_client(&config);
-        }
-    } else {
-        // Invalid arguments
-        print_usage(argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    
-    return 0;
-}
+     
