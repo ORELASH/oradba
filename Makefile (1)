@@ -1,8 +1,7 @@
-
 # Makefile for AIX 7 using gcc
 
 CC       = gcc
-CFLAGS   = -O2 -std=gnu99
+CFLAGS   = -O2 -std=gnu99 -D_AIX
 LDFLAGS  = -lm
 TARGET   = netperf
 SRC      = combined-latency-jitter.c
