@@ -23,26 +23,36 @@ vmstat 1 2 | tail -1 | awk '{
     printf "  Total CPU utilization: %s%%\n", (100-$15);
 }'
 
-# Memory information
+# Memory information using svmon only (no bootinfo -r which needs root)
 echo -e "\n${GREEN}Memory Information:${NC}"
-# Get total memory from bootinfo
-TOTAL_MEM=$(bootinfo -r)
-echo "  Total physical memory: $TOTAL_MEM MB"
 
 # Get memory usage from svmon
-svmon -G | head -3 | awk '{
-    if(NR==1) {
-        printf "  Memory metrics (in 4K pages):\n";
+svmon -G | awk '
+  BEGIN { found_header = 0; }
+  {
+    if($1 == "memory" && $2 == "page") {
+      found_header = 1;
     }
-    else if(NR==2) {
-        # Column headers, skip
+    else if(found_header == 1) {
+      # This is the first data line after header
+      printf "  Total memory pages: %s\n", $1;
+      printf "  Used memory pages: %s\n", $2;
+      printf "  Free memory pages: %s\n", $3;
+      
+      # Calculate memory in MB (assuming 4K pages)
+      total_mb = $1 * 4 / 1024;
+      used_mb = $2 * 4 / 1024;
+      free_mb = $3 * 4 / 1024;
+      
+      printf "  Total physical memory: %.0f MB\n", total_mb;
+      printf "  Used memory: %.0f MB\n", used_mb;
+      printf "  Free memory: %.0f MB\n", free_mb;
+      printf "  Memory utilization: %.1f%%\n", ($2/$1)*100;
+      
+      # We're done with what we need
+      exit;
     }
-    else if(NR==3) {
-        printf "  Total memory pages: %s\n", $1;
-        printf "  Used memory pages: %s\n", $2;
-        printf "  Free memory pages: %s\n", $3;
-        printf "  Memory utilization: %.1f%%\n", ($2/$1)*100;
-    }
-}'
+  }
+'
 
 echo -e "\n${BLUE}======== End of Summary ========${NC}"
