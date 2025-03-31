@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ksh
 
 # Define colors for better output
 GREEN='\033[0;32m'
@@ -6,59 +6,43 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Title
-echo -e "${BLUE}===== System Resource Monitoring =====\n${NC}"
+echo -e "${BLUE}===== AIX System Resources Summary =====${NC}"
 
-# Get CPU information
-CPU_COUNT=$(nproc)
-CPU_MODEL=$(grep "model name" /proc/cpuinfo | head -1 | cut -d':' -f2 | sed 's/^[ \t]*//')
-echo -e "${GREEN}CPU Information:${NC}"
-echo "Number of CPUs: $CPU_COUNT"
-echo "CPU Model: $CPU_MODEL"
-echo ""
+# CPU count
+CPU_COUNT=$(lsdev -Cc processor | wc -l)
+echo -e "\n${GREEN}CPU Information:${NC}"
+echo "  Number of CPUs: $CPU_COUNT"
 
-# Run vmstat and process results
-echo -e "${GREEN}Current System Data:${NC}"
-vmstat 1 2 | tail -1 | awk '
-{
-    # Memory information (in KB)
-    printf "Memory:\n"
-    printf "  Free memory: %s KB\n", $4
-    printf "  Cached memory: %s KB\n", $5
-    printf "  Buffer memory: %s KB\n", $6
-    
-    # Swap information
-    printf "\nSwap:\n"
-    printf "  Swap in: %s KB/s\n", $7
-    printf "  Swap out: %s KB/s\n", $8
-    
-    # I/O information
-    printf "\nI/O Activity:\n"
-    printf "  Blocks read: %s blocks/s\n", $9
-    printf "  Blocks written: %s blocks/s\n", $10
-    
-    # System information
-    printf "\nSystem Activity:\n"
-    printf "  Interrupts: %s/s\n", $11
-    printf "  Context switches: %s/s\n", $12
-    
-    # CPU information
-    printf "\nCPU Usage:\n"
-    printf "  User time: %s%%\n", $13
-    printf "  System time: %s%%\n", $14
-    printf "  Idle time: %s%%\n", $15
-    printf "  I/O wait time: %s%%\n", $16
+# CPU utilization
+echo -e "\n${GREEN}CPU Utilization:${NC}"
+vmstat 1 2 | tail -1 | awk '{
+    printf "  User CPU: %s%%\n", $13;
+    printf "  System CPU: %s%%\n", $14;
+    printf "  Idle CPU: %s%%\n", $15;
+    printf "  Wait I/O: %s%%\n", $16;
+    printf "  Total CPU utilization: %s%%\n", (100-$15);
 }'
 
-# Add overall memory information from free
-echo -e "\n${GREEN}Total Memory Summary:${NC}"
-free -h | grep -v + | sed 's/:/: /' | sed 's/^/  /'
+# Memory information
+echo -e "\n${GREEN}Memory Information:${NC}"
+# Get total memory from bootinfo
+TOTAL_MEM=$(bootinfo -r)
+echo "  Total physical memory: $TOTAL_MEM MB"
 
-# Add CPU load information
-echo -e "\n${GREEN}System Load:${NC}"
-uptime | awk '{ 
-    printf "  Uptime: %s %s %s\n", $3, $4, $5;
-    printf "  Load Average (1, 5, 15 minutes): %s\n", substr($0, index($0, "load average:") + 14);
+# Get memory usage from svmon
+svmon -G | head -3 | awk '{
+    if(NR==1) {
+        printf "  Memory metrics (in 4K pages):\n";
+    }
+    else if(NR==2) {
+        # Column headers, skip
+    }
+    else if(NR==3) {
+        printf "  Total memory pages: %s\n", $1;
+        printf "  Used memory pages: %s\n", $2;
+        printf "  Free memory pages: %s\n", $3;
+        printf "  Memory utilization: %.1f%%\n", ($2/$1)*100;
+    }
 }'
 
-echo -e "\n${BLUE}======== End of System Report ========${NC}"
+echo -e "\n${BLUE}======== End of Summary ========${NC}"
