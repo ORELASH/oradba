@@ -1,0 +1,556 @@
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+/**
+ * Network Latency Measurement Tool - AIX Compatible
+ * An all-in-one application that can act as both server and client
+ * for measuring network latency with microsecond precision.
+ * 
+ * Optimized for compatibility with IBM AIX operating system.
+ */
+public class NetworkLatencyTool {
+    
+    // Default settings
+    private static final int DEFAULT_PORT = 9876;
+    private static final int DEFAULT_PACKET_SIZE = 64;
+    private static final int DEFAULT_TEST_COUNT = 100;
+    private static final int DEFAULT_INTERVAL_MS = 100;
+    private static final int SOCKET_TIMEOUT = 30000; // 30 seconds
+    
+    private boolean isServer = false;
+    private ServerSocket serverSocket;
+    private boolean serverRunning = false;
+    
+    // Client properties
+    private String serverAddress;
+    private int serverPort;
+    private int packetSize;
+    private Socket clientSocket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private List<Long> latencyResults = new ArrayList<>();
+    
+    /**
+     * Initialize as server
+     * @param port Port to listen on
+     * @throws IOException If server socket cannot be created
+     */
+    public NetworkLatencyTool(int port) throws IOException {
+        this.isServer = true;
+        this.serverPort = port;
+        
+        // Create server socket with specific settings for AIX compatibility
+        this.serverSocket = new ServerSocket();
+        serverSocket.setReuseAddress(true); // Important for AIX
+        serverSocket.setSoTimeout(SOCKET_TIMEOUT);
+        
+        // Bind to all available interfaces
+        serverSocket.bind(new InetSocketAddress(port));
+        
+        System.out.println("Server started on port " + port);
+    }
+    
+    /**
+     * Initialize as client
+     * @param serverAddress Server address to connect to
+     * @param serverPort Server port to connect to
+     * @param packetSize Size of packets to send in bytes
+     */
+    public NetworkLatencyTool(String serverAddress, int serverPort, int packetSize) {
+        this.isServer = false;
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
+        this.packetSize = packetSize;
+    }
+    
+    /**
+     * Start server mode, accepting client connections
+     */
+    public void startServer() {
+        serverRunning = true;
+        
+        // Create a separate thread for accepting connections
+        Thread serverThread = new Thread() {
+            public void run() {
+                while (serverRunning) {
+                    Socket clientSocket = null;
+                    try {
+                        System.out.println("Waiting for client connection...");
+                        clientSocket = serverSocket.accept();
+                        
+                        // Configure client socket (improve AIX compatibility)
+                        configureSocket(clientSocket);
+                        
+                        handleClient(clientSocket);
+                    } catch (SocketTimeoutException e) {
+                        // This is normal - just allows the loop to check if server is still running
+                        continue;
+                    } catch (IOException e) {
+                        if (serverRunning) {
+                            System.err.println("Error accepting connection: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Set as daemon thread to ensure JVM can exit
+        serverThread.setDaemon(true);
+        serverThread.start();
+    }
+    
+    /**
+     * Configure socket parameters for better performance on AIX
+     * @param socket The socket to configure
+     */
+    private void configureSocket(Socket socket) throws SocketException {
+        socket.setTcpNoDelay(true);      // Disable Nagle's algorithm
+        socket.setKeepAlive(true);       // Enable TCP keepalive
+        socket.setSoTimeout(SOCKET_TIMEOUT);  // Set read timeout
+    }
+    
+    /**
+     * Handle a client connection in server mode
+     * @param clientSocket Socket for the connected client
+     */
+    private void handleClient(final Socket clientSocket) {
+        Thread clientThread = new Thread() {
+            public void run() {
+                try {
+                    System.out.println("Client connected: " + clientSocket.getInetAddress());
+                    DataInputStream in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+                    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+                    
+                    while (clientSocket.isConnected() && !clientSocket.isClosed()) {
+                        try {
+                            // Read request type
+                            String requestType = in.readUTF();
+                            
+                            if (requestType.equals("PING")) {
+                                // Read timestamp sent by client
+                                long clientTimestamp = in.readLong();
+                                
+                                // Read any additional data (for packet size simulation)
+                                int remainingBytes = in.available();
+                                if (remainingBytes > 0) {
+                                    byte[] dummyData = new byte[remainingBytes];
+                                    in.readFully(dummyData);
+                                }
+                                
+                                // Send response immediately
+                                out.writeUTF("PONG");
+                                out.writeLong(clientTimestamp);
+                                out.flush();
+                            }
+                        } catch (SocketTimeoutException e) {
+                            // Timeout on read - check if socket is still valid
+                            if (!clientSocket.isConnected() || clientSocket.isClosed()) {
+                                break;
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    // Connection closed or error occurred
+                    System.out.println("Client disconnected or error occurred: " + e.getMessage());
+                } finally {
+                    try {
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        System.err.println("Error closing connection: " + e.getMessage());
+                    }
+                }
+            }
+        };
+        
+        clientThread.setDaemon(true);
+        clientThread.start();
+    }
+    
+    /**
+     * Stop the server
+     */
+    public void stopServer() {
+        serverRunning = false;
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+                System.out.println("Server stopped");
+            }
+        } catch (IOException e) {
+            System.err.println("Error closing server: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Connect client to server
+     * @throws IOException If connection fails
+     */
+    public void connectClient() throws IOException {
+        // Create socket with specific configuration for AIX
+        clientSocket = new Socket();
+        
+        // Configure socket before connecting
+        configureSocket(clientSocket);
+        
+        // Connect with timeout
+        clientSocket.connect(new InetSocketAddress(serverAddress, serverPort), SOCKET_TIMEOUT);
+        
+        // Use buffered streams for better performance on AIX
+        in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+        out = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+        
+        System.out.println("Connected to server: " + serverAddress + ":" + serverPort);
+    }
+    
+    /**
+     * Disconnect client from server
+     */
+    public void disconnectClient() {
+        try {
+            if (clientSocket != null && !clientSocket.isClosed()) {
+                clientSocket.close();
+                in = null;
+                out = null;
+                System.out.println("Disconnected from server");
+            }
+        } catch (IOException e) {
+            System.err.println("Error closing connection: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Measure a single latency sample (send one ping)
+     * @return Round-trip time in nanoseconds
+     * @throws IOException If communication error occurs
+     */
+    public long measureLatency() throws IOException {
+        // Create array of required size (to simulate packets of different sizes)
+        byte[] dummyData = new byte[packetSize];
+        
+        // Timestamp before sending
+        long startTime = System.nanoTime();
+        
+        // Send PING message with current timestamp
+        out.writeUTF("PING");
+        out.writeLong(startTime);
+        
+        // If we need to send additional data to simulate a packet of certain size
+        if (packetSize > 16) { // PING + long already take about 16 bytes
+            out.write(dummyData, 0, packetSize - 16);
+        }
+        
+        out.flush();
+        
+        // Receive response from server
+        String response = in.readUTF();
+        long originTimestamp = in.readLong();
+        
+        // Timestamp after receiving
+        long endTime = System.nanoTime();
+        
+        // Calculate RTT (Round-Trip Time)
+        long rtt = endTime - startTime;
+        
+        // Add result to results list
+        latencyResults.add(rtt);
+        
+        return rtt;
+    }
+    
+    /**
+     * Run a series of latency measurements
+     * @param count Number of measurements to perform
+     * @param intervalMs Time to wait between measurements (milliseconds)
+     */
+    public void runLatencyTest(int count, int intervalMs) {
+        latencyResults.clear();
+        
+        try {
+            connectClient();
+            
+            System.out.println("Starting " + count + " latency measurements with " + packetSize + " byte packets...");
+            
+            // Warm-up runs (important for JVM optimization, especially on AIX)
+            System.out.println("Performing warm-up measurements...");
+            for (int i = 0; i < 10; i++) {
+                measureLatency();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    // Ignore
+                }
+            }
+            
+            // Clear warm-up results
+            latencyResults.clear();
+            
+            for (int i = 0; i < count; i++) {
+                try {
+                    long latencyNanos = measureLatency();
+                    
+                    double latencyMicros = latencyNanos / 1000.0;
+                    double latencyMillis = latencyMicros / 1000.0;
+                    
+                    System.out.printf("Test %d: %.3f microseconds (%.3f milliseconds)%n", 
+                                     i+1, latencyMicros, latencyMillis);
+                    
+                    // Wait before next measurement
+                    if (i < count - 1 && intervalMs > 0) {
+                        Thread.sleep(intervalMs);
+                    }
+                } catch (InterruptedException e) {
+                    System.err.println("Test interrupted: " + e.getMessage());
+                    break;
+                } catch (IOException e) {
+                    System.err.println("Error during test " + (i+1) + ": " + e.getMessage());
+                    // Try to continue with next test
+                }
+            }
+            
+            // Show statistics
+            printStatistics();
+            
+        } catch (IOException e) {
+            System.err.println("Communication error: " + e.getMessage());
+        } finally {
+            disconnectClient();
+        }
+    }
+    
+    /**
+     * Calculate and display statistics based on collected measurements
+     */
+    private void printStatistics() {
+        if (latencyResults.isEmpty()) {
+            System.out.println("No data to display");
+            return;
+        }
+        
+        // Sort results for accurate min, max, median, percentiles
+        Collections.sort(latencyResults);
+        
+        // Calculate average
+        double avgNanos = calculateAverage(latencyResults);
+        
+        // Min, max
+        long minNanos = latencyResults.get(0);
+        long maxNanos = latencyResults.get(latencyResults.size() - 1);
+        
+        // Median (50th percentile)
+        long medianNanos = getPercentile(50);
+        
+        // Standard deviation
+        double stdDev = calculateStdDev(avgNanos);
+        
+        // Additional percentiles
+        long p90 = getPercentile(90);
+        long p95 = getPercentile(95);
+        long p99 = getPercentile(99);
+        
+        // Jitter (variance between consecutive measurements)
+        double jitterNanos = calculateJitter();
+        
+        // Convert to various units for display
+        double avgMicros = avgNanos / 1000.0;
+        double minMicros = minNanos / 1000.0;
+        double maxMicros = maxNanos / 1000.0;
+        double medianMicros = medianNanos / 1000.0;
+        double stdDevMicros = stdDev / 1000.0;
+        double p90Micros = p90 / 1000.0;
+        double p95Micros = p95 / 1000.0;
+        double p99Micros = p99 / 1000.0;
+        double jitterMicros = jitterNanos / 1000.0;
+        
+        // Display results
+        System.out.println("\n===== Latency Statistics =====");
+        System.out.printf("Number of tests: %d%n", latencyResults.size());
+        System.out.printf("Packet size: %d bytes%n", packetSize);
+        System.out.printf("Minimum: %.3f microseconds%n", minMicros);
+        System.out.printf("Maximum: %.3f microseconds%n", maxMicros);
+        System.out.printf("Average: %.3f microseconds%n", avgMicros);
+        System.out.printf("Median: %.3f microseconds%n", medianMicros);
+        System.out.printf("Standard deviation: %.3f microseconds%n", stdDevMicros);
+        System.out.printf("90th percentile: %.3f microseconds%n", p90Micros);
+        System.out.printf("95th percentile: %.3f microseconds%n", p95Micros);
+        System.out.printf("99th percentile: %.3f microseconds%n", p99Micros);
+        System.out.printf("Jitter (average): %.3f microseconds%n", jitterMicros);
+    }
+    
+    /**
+     * Calculate average manually (avoiding potential Stream API issues on older AIX JVMs)
+     */
+    private double calculateAverage(List<Long> values) {
+        long sum = 0;
+        for (Long value : values) {
+            sum += value;
+        }
+        return (double) sum / values.size();
+    }
+    
+    /**
+     * Calculate a specific percentile from measurement data
+     * @param percentile Percentile to calculate (0-100)
+     * @return Value at the specified percentile in nanoseconds
+     */
+    private long getPercentile(int percentile) {
+        int index = (int) Math.ceil(percentile / 100.0 * latencyResults.size()) - 1;
+        index = Math.max(0, Math.min(latencyResults.size() - 1, index));
+        return latencyResults.get(index);
+    }
+    
+    /**
+     * Calculate standard deviation
+     * @param mean Mean value
+     * @return Standard deviation in nanoseconds
+     */
+    private double calculateStdDev(double mean) {
+        double sumSquaredDiff = 0;
+        for (Long value : latencyResults) {
+            double diff = value - mean;
+            sumSquaredDiff += diff * diff;
+        }
+        return Math.sqrt(sumSquaredDiff / latencyResults.size());
+    }
+    
+    /**
+     * Calculate average jitter (variance between consecutive measurements)
+     * @return Average jitter in nanoseconds
+     */
+    private double calculateJitter() {
+        if (latencyResults.size() <= 1) {
+            return 0;
+        }
+        
+        double totalDiff = 0;
+        for (int i = 1; i < latencyResults.size(); i++) {
+            totalDiff += Math.abs(latencyResults.get(i) - latencyResults.get(i-1));
+        }
+        
+        return totalDiff / (latencyResults.size() - 1);
+    }
+    
+    /**
+     * Print usage instructions
+     */
+    private static void printUsage() {
+        System.out.println("Network Latency Measurement Tool (AIX Compatible)");
+        System.out.println("Usage:");
+        System.out.println("  Server mode: java NetworkLatencyTool -s [port]");
+        System.out.println("  Client mode: java NetworkLatencyTool -c server_address [port] [packet_size] [test_count] [interval_ms]");
+        System.out.println();
+        System.out.println("Parameters:");
+        System.out.println("  -s             Run in server mode");
+        System.out.println("  -c             Run in client mode");
+        System.out.println("  port           Port to use (default: 9876)");
+        System.out.println("  server_address Server address in client mode (IP or hostname)");
+        System.out.println("  packet_size    Size of packets in bytes (default: 64)");
+        System.out.println("  test_count     Number of tests to run (default: 100)");
+        System.out.println("  interval_ms    Interval between tests in milliseconds (default: 100)");
+    }
+    
+    /**
+     * Main entry point for the application
+     * @param args Command line arguments
+     */
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            printUsage();
+            return;
+        }
+        
+        String mode = args[0];
+        
+        try {
+            if (mode.equals("-s")) {
+                // Server mode
+                int port = DEFAULT_PORT;
+                if (args.length > 1) {
+                    try {
+                        port = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid port number, using default: " + DEFAULT_PORT);
+                    }
+                }
+                
+                NetworkLatencyTool server = new NetworkLatencyTool(port);
+                server.startServer();
+                
+                // Add shutdown hook to close server gracefully
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                        System.out.println("Shutting down server...");
+                        server.stopServer();
+                    }
+                });
+                
+                System.out.println("Server is running. Press Ctrl+C to stop.");
+                
+                // Keep main thread alive
+                try {
+                    while (true) {
+                        Thread.sleep(Long.MAX_VALUE);
+                    }
+                } catch (InterruptedException e) {
+                    // Exit
+                }
+                
+            } else if (mode.equals("-c")) {
+                // Client mode
+                if (args.length < 2) {
+                    System.err.println("Server address required for client mode");
+                    printUsage();
+                    return;
+                }
+                
+                String serverAddress = args[1];
+                int serverPort = DEFAULT_PORT;
+                int packetSize = DEFAULT_PACKET_SIZE;
+                int testCount = DEFAULT_TEST_COUNT;
+                int intervalMs = DEFAULT_INTERVAL_MS;
+                
+                if (args.length > 2) {
+                    try {
+                        serverPort = Integer.parseInt(args[2]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid port, using default: " + DEFAULT_PORT);
+                    }
+                }
+                
+                if (args.length > 3) {
+                    try {
+                        packetSize = Integer.parseInt(args[3]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid packet size, using default: " + DEFAULT_PACKET_SIZE);
+                    }
+                }
+                
+                if (args.length > 4) {
+                    try {
+                        testCount = Integer.parseInt(args[4]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid test count, using default: " + DEFAULT_TEST_COUNT);
+                    }
+                }
+                
+                if (args.length > 5) {
+                    try {
+                        intervalMs = Integer.parseInt(args[5]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid interval, using default: " + DEFAULT_INTERVAL_MS);
+                    }
+                }
+                
+                NetworkLatencyTool client = new NetworkLatencyTool(serverAddress, serverPort, packetSize);
+                client.runLatencyTest(testCount, intervalMs);
+                
+            } else {
+                System.err.println("Unknown mode: " + mode);
+                printUsage();
+            }
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
