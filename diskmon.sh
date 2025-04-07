@@ -2,7 +2,12 @@
 # AIX System Monitor Script
 # This script displays disk usage, CPU and memory information on login
 # Configuration
-DISK_THRESHOLD=10  # Alert threshold percentage for disk space
+# Default disk threshold is 10% (can be overridden by first argument)
+if [ $# -ge 1 ] && [[ $1 =~ ^[0-9]+$ ]]; then
+    DISK_THRESHOLD=$1
+else
+    DISK_THRESHOLD=10
+fi
 
 # Function to get disk space status
 get_disk_space() {
@@ -30,8 +35,13 @@ get_cpu_usage() {
     SYS_CPU=$(echo $CPU_INFO | awk '{print $4}')
     IDLE_CPU=$(echo $CPU_INFO | awk '{print $6}')
     
-    # Calculate total CPU usage
+    # Calculate total CPU usage - ensure we handle negative values
+    # This can happen due to rounding errors in lparstat output
     TOTAL_CPU=$(echo "scale=1; 100 - $IDLE_CPU" | bc)
+    # If result is negative (due to rounding errors), set to 0
+    if (( $(echo "$TOTAL_CPU < 0" | bc -l) )); then
+        TOTAL_CPU="0.0"
+    fi
     
     echo "$TOTAL_CPU% used"
 }
@@ -58,21 +68,21 @@ MEM_STATUS=$(get_memory_usage)
 CHECK_TIME=$(date +"%H:%M:%S %d/%m/%Y")
 
 # Display all information in one row with boxes
-echo "+------------------------------------------------------+"
-echo "|             AIX SYSTEM STATUS MONITOR                |"
-echo "+------------------------------------------------------+"
-echo "| Check Time: $CHECK_TIME |"
-echo "+---------------+------------------+------------------+"
-echo "| DISK SPACE    | CPU USAGE        | MEMORY USAGE     |"
-echo "+---------------+------------------+------------------+"
-printf "| %-13s | %-16s | %-16s |\n" "$DISK_STATUS" "$CPU_STATUS" "$MEM_STATUS"
-echo "+---------------+------------------+------------------+"
+echo "+--------------------------------------------------------------+"
+echo "|                AIX SYSTEM STATUS MONITOR                 |"
+echo "+--------------------------------------------------------------+"
+printf "| Check Time: %-43s |\n" "$CHECK_TIME"
+echo "+----------------------+----------------------+----------------------+"
+echo "| DISK SPACE           | CPU USAGE             | MEMORY USAGE          |"
+echo "+----------------------+----------------------+----------------------+"
+printf "| %-20s | %-20s | %-20s |\n" "$DISK_STATUS" "$CPU_STATUS" "$MEM_STATUS"
+echo "+----------------------+----------------------+----------------------+"
 
 # Add detailed information for critical filesystems if any
 CRITICAL_FS=$(df -kP | grep -v Filesystem | awk -v threshold="$DISK_THRESHOLD" '{ gsub(/%/,"",$5); if (100-$5 < threshold) print $0 }')
 if [ -n "$CRITICAL_FS" ]; then
-    echo "|                 CRITICAL FILESYSTEMS                  |"
-    echo "+--------------------------------------------------+"
+    echo "|                    CRITICAL FILESYSTEMS                    |"
+    echo "+------------------------------------------------------------+"
     
     # Parse each critical filesystem and display
     IFS=$'\n'
