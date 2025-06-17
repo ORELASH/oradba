@@ -28,7 +28,6 @@ export {
     global oracle_ports: set[port] = { 1521/tcp, 1522/tcp, 1523/tcp, 1526/tcp };
 }
 
-# Active connections tracking tables
 global oracle_connections: table[string] of Info;
 global connection_start_times: table[string] of time;
 
@@ -56,9 +55,10 @@ function analyze_tns_packet(payload: string): Info {
             info$oracle_command = "DATA";
             if (|payload| > 20) {
                 local data_payload = payload[8:];
-                for (kw in {"SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"}) {
-                    if (kw in data_payload) {
-                        info$sql_type = kw;
+                local sql_keywords: vector of string = vector("SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP");
+                for (i in sql_keywords) {
+                    if (sql_keywords[i] in data_payload) {
+                        info$sql_type = sql_keywords[i];
                         break;
                     }
                 }
@@ -180,10 +180,4 @@ event tcp_packet(c: connection, is_orig: bool, flags: string, seq: count, ack: c
         if (tns_info?$oracle_command) rec$oracle_command = tns_info$oracle_command;
         if (tns_info?$connection_state) rec$connection_state = tns_info$connection_state;
         if (tns_info?$service_name) rec$service_name = tns_info$service_name;
-        if (tns_info?$oracle_sid) rec$oracle_sid = tns_info$oracle_sid;
-        if (tns_info?$oracle_version) rec$oracle_version = tns_info$oracle_version;
-        if (tns_info?$sql_type) rec$sql_type = tns_info$sql_type;
-
-        Log::write(Oracle::LOG, rec);
-    }
-}
+        if (tns_info?$o_
