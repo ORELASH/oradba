@@ -1,8 +1,8 @@
-@load ./simple-oracle.zeek
+@load tuning/defaults
+@load frameworks/communication/listen
 
-# Mirror interface configuration  
-redef interface = "enP32780p1s0f0";  # Your actual Mirror interface
+redef LogAscii::use_json = T;
+redef LogAscii::json_timestamps = JSON::TS_EPOCH;
 
-# Optimization settings
-redef default_file_bsize = 1024*1024;
-redef Log::default_rotation_interval = 1hr;
+redef Site::local_nets += { 192.168.0.0/16 };
+redef Site::interface = "eth0";
