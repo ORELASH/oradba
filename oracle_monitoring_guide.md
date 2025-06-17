@@ -46,7 +46,7 @@ export {
     global oracle_ports: set[port] = { 1521/tcp, 1522/tcp, 1523/tcp, 1526/tcp };
 }
 
-# Active connections tracking table
+# Active connections tracking tables
 global oracle_connections: table[string] of Info;
 global connection_start_times: table[string] of time;
 
@@ -139,7 +139,7 @@ function analyze_tns_packet(payload: string): Info {
 
 # Identify Connect Data
 function extract_connect_data(payload: string): Info {
-    local info: Info;
+    local info: Info = [$ts=network_time(), $uid="", $id=[$orig_h=0.0.0.0, $orig_p=0/tcp, $resp_h=0.0.0.0, $resp_p=0/tcp]];
     
     if ("SERVICE_NAME=" in payload) {
         local service_start = strstr(payload, "SERVICE_NAME=") + 13;
@@ -171,8 +171,8 @@ function extract_connect_data(payload: string): Info {
 
 event connection_established(c: connection) {
     if (c$id$resp_p in oracle_ports) {
-        local conn_id = fmt("%s:%d->%s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
-        connection_start_times[conn_id] = network_time();
+        local connection_key = fmt("%s:%d->%s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
+        connection_start_times[connection_key] = network_time();
         
         local rec: Oracle::Info = [
             $ts=network_time(),
@@ -181,17 +181,17 @@ event connection_established(c: connection) {
             $connection_state="ESTABLISHED"
         ];
         
-        oracle_connections[conn_id] = rec;
+        oracle_connections[connection_key] = rec;
         Log::write(Oracle::LOG, rec);
     }
 }
 
 event connection_state_remove(c: connection) {
     if (c$id$resp_p in oracle_ports) {
-        local conn_id = fmt("%s:%d->%s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
+        local connection_key = fmt("%s:%d->%s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
         
-        if (conn_id in connection_start_times) {
-            local duration = network_time() - connection_start_times[conn_id];
+        if (connection_key in connection_start_times) {
+            local duration = network_time() - connection_start_times[connection_key];
             
             local rec: Oracle::Info = [
                 $ts=network_time(),
@@ -207,8 +207,8 @@ event connection_state_remove(c: connection) {
                 rec$bytes_received = c$conn$resp_bytes;
             
             Log::write(Oracle::LOG, rec);
-            delete connection_start_times[conn_id];
-            delete oracle_connections[conn_id];
+            delete connection_start_times[connection_key];
+            delete oracle_connections[connection_key];
         }
     }
 }
@@ -256,7 +256,6 @@ event tcp_packet(c: connection, is_orig: bool, flags: string, seq: count, ack: c
         Log::write(Oracle::LOG, rec);
     }
 }
-```
 
 ### 1.2 הוספת הסקריפט ל-local.zeek
 ```bash
