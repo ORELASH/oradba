@@ -15,7 +15,6 @@ sudo nano /opt/zeek/share/zeek/site/oracle-monitor.zeek
 ```
 
 הוסף את התוכן הבא:
-```zeek
 @load base/protocols/conn
 @load base/utils/time
 
