@@ -72,40 +72,40 @@ function analyze_tns_packet(payload: string): Info {
         case 14: info$oracle_command = "CONTROL"; break;
         default:
             info$oracle_command = fmt("UNKNOWN_TYPE_%d", packet_type);
+            break;
     }
 
     return info;
 }
 
+function extract_field(payload: string, key: string): string {
+    local pos = strstr(payload, key);
+    if (pos < 0)
+        return "";
+
+    local start = pos + |key|;
+    local rem = payload[start:];
+    local end = strstr(rem, ")");
+    if (end < 0)
+        return "";
+
+    return rem[0:end];
+}
+
 function extract_connect_data(payload: string): Info {
     local info: Info = [$ts=network_time(), $uid="", $id=[$orig_h=0.0.0.0, $orig_p=0/tcp, $resp_h=0.0.0.0, $resp_p=0/tcp]];
 
-    local sname_pos = strstr(payload, "SERVICE_NAME=");
-    if (sname_pos >= 0) {
-        local start = sname_pos + 13;
-        local end = strstr(payload[start:], ")");
-        if (end > 0)
-            info$service_name = payload[start:start + end];
-    }
+    local svc = extract_field(payload, "SERVICE_NAME=");
+    if (svc != "")
+        info$service_name = svc;
 
-    local sid_pos = strstr(payload, "SID=");
-    if (sid_pos >= 0) {
-        local start = sid_pos + 4;
-        local end = strstr(payload[start:], ")");
-        if (end > 0)
-            info$oracle_sid = payload[start:start + end];
-    }
+    local sid = extract_field(payload, "SID=");
+    if (sid != "")
+        info$oracle_sid = sid;
 
-    local prog_pos = strstr(payload, "PROGRAM=");
-    if (prog_pos >= 0) {
-        local start = prog_pos + 8;
-        local end = strstr(payload[start:], ")");
-        if (end > 0) {
-            local program = payload[start:start + end];
-            if ("oracle" in to_lower(program))
-                info$oracle_version = program;
-        }
-    }
+    local prog = extract_field(payload, "PROGRAM=");
+    if (prog != "" && /oracle/i in prog)
+        info$oracle_version = prog;
 
     return info;
 }
@@ -180,4 +180,10 @@ event tcp_packet(c: connection, is_orig: bool, flags: string, seq: count, ack: c
         if (tns_info?$oracle_command) rec$oracle_command = tns_info$oracle_command;
         if (tns_info?$connection_state) rec$connection_state = tns_info$connection_state;
         if (tns_info?$service_name) rec$service_name = tns_info$service_name;
-        if (tns_info?$o_
+        if (tns_info?$oracle_sid) rec$oracle_sid = tns_info$oracle_sid;
+        if (tns_info?$oracle_version) rec$oracle_version = tns_info$oracle_version;
+        if (tns_info?$sql_type) rec$sql_type = tns_info$sql_type;
+
+        Log::write(Oracle::LOG, rec);
+    }
+}
