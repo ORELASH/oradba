@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+import cx_Oracle
+import requests
+from datetime import datetime
+
+conn = cx_Oracle.connect("user/password@host:1521/SERVICE")
+cursor = conn.cursor()
+
+points = []
+timestamp = int(datetime.utcnow().timestamp())  # seconds since epoch
+
+# מדידת זמן ממוצע לשאילתות
+cursor.execute("""
+SELECT sql_id, module, elapsed_time/1000000/NULLIF(executions,0) AS avg_sec
+FROM v$sql
+WHERE executions > 0 AND elapsed_time/1000000 > 1
+FETCH FIRST 10 ROWS ONLY
+""")
+for sql_id, module, avg_sec in cursor.fetchall():
+    line = f'oracle_sql_perf,sql_id={sql_id},module={module} avg_sec={avg_sec} {timestamp}'
+    points.append(line)
+
+# מדדי עומס כלליים
+cursor.execute("""
+SELECT metric_name, value FROM v$sysmetric
+WHERE metric_name IN (
+  'Host CPU Utilization (%)',
+  'Database CPU Time Ratio',
+  'Average Active Sessions'
+)
+""")
+for metric, val in cursor.fetchall():
+    m = metric.replace(" ", "_").replace("(", "").replace(")", "")
+    points.append(f'oracle_sysmetric,metric={m} value={val} {timestamp}')
+
+# כתיבה ל-InfluxDB 1.x
+influx_url = 'http://localhost:8086/write?db=oracle&precision=s'
+r = requests.post(influx_url, data="\n".join(points), auth=('influxuser', 'influxpass'))
+
+if r.status_code != 204:
+    print("Failed to write to Influx:", r.text)
