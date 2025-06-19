@@ -1,0 +1,167 @@
+להלן תיאור מלא של **Grafana Dashboard מוכן** שמתאים לנתונים שנשלחים ל־**InfluxDB 1.x** לפי הקוד שלך. הדשבורד כולל:
+
+1. גרף לביצועי שאילתות (`avg_sec` לפי `sql_id` ו־`module`)
+2. גרף לכל אחד משלושת מדדי המערכת:
+
+   * Host CPU Utilization
+   * Database CPU Time Ratio
+   * Average Active Sessions
+
+---
+
+## 📦 הוראות שימוש
+
+1. היכנס ל־Grafana → Dashboards → Manage → Import.
+2. הדבק את ה־JSON כאן או טען את הקובץ אם שמרת אותו מקומית.
+3. בחר את ה־**InfluxDB datasource** המתאים (זה שמוגדר מול מסד הנתונים `oracle`).
+
+---
+
+## 📋 JSON מלא לדשבורד
+
+הנה קובץ JSON מוכן לטעינה ב־Grafana:
+
+📎 **שם הדשבורד**: `Oracle SQL Performance + Sysmetrics`
+🧩 **Panels**: 4 (1 לביצועי SQL + 3 למדדים מערכתיים)
+🎯 **Datasource**: InfluxDB 1.x
+
+```json
+{
+  "dashboard": {
+    "id": null,
+    "uid": null,
+    "title": "Oracle SQL Performance + Sysmetrics",
+    "timezone": "browser",
+    "schemaVersion": 26,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "SQL Average Elapsed Time (avg_sec)",
+        "id": 1,
+        "datasource": "InfluxDB",
+        "targets": [
+          {
+            "refId": "A",
+            "measurement": "oracle_sql_perf",
+            "groupBy": [
+              { "type": "time", "params": ["$__interval"] },
+              { "type": "tag", "params": ["sql_id"] },
+              { "type": "tag", "params": ["module"] }
+            ],
+            "select": [
+              [
+                { "type": "field", "params": ["avg_sec"] },
+                { "type": "mean", "params": [] }
+              ]
+            ],
+            "alias": "$tag_sql_id - $tag_module",
+            "orderByTime": "DESC",
+            "policy": "default",
+            "query": "SELECT mean(\"avg_sec\") FROM \"oracle_sql_perf\" WHERE $timeFilter GROUP BY time($__interval), \"sql_id\", \"module\""
+          }
+        ],
+        "xaxis": { "mode": "time" },
+        "yaxes": [
+          { "format": "s", "label": "Seconds", "logBase": 1 },
+          { "format": "short", "logBase": 1 }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Host CPU Utilization (%)",
+        "id": 2,
+        "datasource": "InfluxDB",
+        "targets": [
+          {
+            "refId": "A",
+            "measurement": "oracle_sysmetric",
+            "tags": [{ "key": "metric", "operator": "=", "value": "Host_CPU_Utilization_%" }],
+            "select": [
+              [
+                { "type": "field", "params": ["value"] },
+                { "type": "mean", "params": [] }
+              ]
+            ],
+            "groupBy": [
+              { "type": "time", "params": ["$__interval"] }
+            ],
+            "query": "SELECT mean(\"value\") FROM \"oracle_sysmetric\" WHERE \"metric\"='Host_CPU_Utilization_%' AND $timeFilter GROUP BY time($__interval)"
+          }
+        ],
+        "xaxis": { "mode": "time" },
+        "yaxes": [
+          { "format": "percent", "label": "CPU %", "logBase": 1 },
+          { "format": "short", "logBase": 1 }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Database CPU Time Ratio",
+        "id": 3,
+        "datasource": "InfluxDB",
+        "targets": [
+          {
+            "refId": "A",
+            "measurement": "oracle_sysmetric",
+            "tags": [{ "key": "metric", "operator": "=", "value": "Database_CPU_Time_Ratio" }],
+            "select": [
+              [
+                { "type": "field", "params": ["value"] },
+                { "type": "mean", "params": [] }
+              ]
+            ],
+            "groupBy": [
+              { "type": "time", "params": ["$__interval"] }
+            ],
+            "query": "SELECT mean(\"value\") FROM \"oracle_sysmetric\" WHERE \"metric\"='Database_CPU_Time_Ratio' AND $timeFilter GROUP BY time($__interval)"
+          }
+        ],
+        "xaxis": { "mode": "time" },
+        "yaxes": [
+          { "format": "percent", "label": "Ratio %", "logBase": 1 },
+          { "format": "short", "logBase": 1 }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Average Active Sessions",
+        "id": 4,
+        "datasource": "InfluxDB",
+        "targets": [
+          {
+            "refId": "A",
+            "measurement": "oracle_sysmetric",
+            "tags": [{ "key": "metric", "operator": "=", "value": "Average_Active_Sessions" }],
+            "select": [
+              [
+                { "type": "field", "params": ["value"] },
+                { "type": "mean", "params": [] }
+              ]
+            ],
+            "groupBy": [
+              { "type": "time", "params": ["$__interval"] }
+            ],
+            "query": "SELECT mean(\"value\") FROM \"oracle_sysmetric\" WHERE \"metric\"='Average_Active_Sessions' AND $timeFilter GROUP BY time($__interval)"
+          }
+        ],
+        "xaxis": { "mode": "time" },
+        "yaxes": [
+          { "format": "short", "label": "Sessions", "logBase": 1 },
+          { "format": "short", "logBase": 1 }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}
+```
+
+---
+
+## 📤 רוצה קובץ `json` להעלאה?
+
+אם תרצה שאייצר לך קובץ `.json` מוכן להורדה וייבוא — בקש זאת ואצרף לך קובץ ישירות.
+
+או, לחלופין, אמור לי אם אתה משתמש ב־InfluxDB **2.x (Flux)** או מעוניין בתוספות כמו alerts, templating לפי `module`/`sql_id`, ועוד.
