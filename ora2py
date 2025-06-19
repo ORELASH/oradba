@@ -3,13 +3,26 @@ import cx_Oracle
 import requests
 from datetime import datetime
 
+def escape_tag_value(value):
+    if value is None:
+        return "unknown"
+    return (
+        value.replace("\\", "\\\\")
+             .replace(" ", "\\ ")
+             .replace(",", "\\,")
+             .replace("=", "\\=")
+             .replace("(", "\\(")
+             .replace(")", "\\)")
+             .strip()
+    )
+
 conn = cx_Oracle.connect("user/password@host:1521/SERVICE")
 cursor = conn.cursor()
 
 points = []
 timestamp = int(datetime.utcnow().timestamp())  # seconds since epoch
 
-# מדידת זמן ממוצע לשאילתות
+# Query average elapsed time per SQL statement
 cursor.execute("""
 SELECT sql_id, module, elapsed_time/1000000/NULLIF(executions,0) AS avg_sec
 FROM v$sql
@@ -17,10 +30,12 @@ WHERE executions > 0 AND elapsed_time/1000000 > 1
 FETCH FIRST 10 ROWS ONLY
 """)
 for sql_id, module, avg_sec in cursor.fetchall():
-    line = f'oracle_sql_perf,sql_id={sql_id},module={module} avg_sec={avg_sec} {timestamp}'
+    safe_sql_id = escape_tag_value(sql_id)
+    safe_module = escape_tag_value(module)
+    line = f'oracle_sql_perf,sql_id={safe_sql_id},module={safe_module} avg_sec={avg_sec} {timestamp}'
     points.append(line)
 
-# מדדי עומס כלליים
+# Query general system metrics
 cursor.execute("""
 SELECT metric_name, value FROM v$sysmetric
 WHERE metric_name IN (
@@ -33,9 +48,11 @@ for metric, val in cursor.fetchall():
     m = metric.replace(" ", "_").replace("(", "").replace(")", "")
     points.append(f'oracle_sysmetric,metric={m} value={val} {timestamp}')
 
-# כתיבה ל-InfluxDB 1.x
+# Write to InfluxDB 1.x
 influx_url = 'http://localhost:8086/write?db=oracle&precision=s'
 r = requests.post(influx_url, data="\n".join(points), auth=('influxuser', 'influxpass'))
 
 if r.status_code != 204:
     print("Failed to write to Influx:", r.text)
+else:
+    print("Write successful.")
