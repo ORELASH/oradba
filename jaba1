@@ -1,0 +1,89 @@
+import java.sql.*;
+
+/**
+ * Minimal MSSQL Kerberos Connection Test
+ * Simple utility to test MSSQL connection with Kerberos authentication
+ */
+public class MinimalMSSQLKerberosTest {
+    
+    // Configuration - Update these values
+    private static final String SERVER = "your-sql-server.domain.com";
+    private static final String PORT = "1433";
+    private static final String DATABASE = "your_database";
+    private static final String DOMAIN = "YOUR_DOMAIN.COM";
+    private static final String KDC = "your-domain-controller.com";
+    
+    public static void main(String[] args) {
+        // Set Kerberos properties
+        setupKerberos();
+        
+        // Test connection
+        testConnection();
+    }
+    
+    /**
+     * Setup required Kerberos system properties
+     */
+    private static void setupKerberos() {
+        System.setProperty("java.security.krb5.realm", DOMAIN);
+        System.setProperty("java.security.krb5.kdc", KDC);
+        System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        
+        // Optional: Enable debug (remove for production)
+        // System.setProperty("sun.security.krb5.debug", "true");
+        
+        System.out.println("Kerberos properties configured");
+    }
+    
+    /**
+     * Test database connection with Kerberos
+     */
+    private static void testConnection() {
+        String connectionUrl = String.format(
+            "jdbc:sqlserver://%s:%s;databaseName=%s;integratedSecurity=true;authenticationScheme=JavaKerberos;encrypt=false;trustServerCertificate=true;",
+            SERVER, PORT, DATABASE
+        );
+        
+        System.out.println("Testing connection to: " + SERVER);
+        System.out.println("Database: " + DATABASE);
+        
+        try (Connection connection = DriverManager.getConnection(connectionUrl)) {
+            
+            if (connection != null && !connection.isClosed()) {
+                System.out.println("✅ Connection successful!");
+                
+                // Get basic info
+                DatabaseMetaData metaData = connection.getMetaData();
+                System.out.println("Connected as: " + metaData.getUserName());
+                
+                // Simple test query
+                try (Statement stmt = connection.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT @@VERSION, SYSTEM_USER, GETDATE()")) {
+                    
+                    if (rs.next()) {
+                        System.out.println("Server version: " + rs.getString(1).substring(0, 50) + "...");
+                        System.out.println("System user: " + rs.getString(2));
+                        System.out.println("Server time: " + rs.getString(3));
+                    }
+                }
+                
+            } else {
+                System.out.println("❌ Connection failed");
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Connection error: " + e.getMessage());
+            
+            // Basic troubleshooting hints
+            if (e.getMessage().contains("Integrated authentication failed")) {
+                System.err.println("\nTroubleshooting tips:");
+                System.err.println("- Check domain membership");
+                System.err.println("- Verify time sync with DC");
+                System.err.println("- Check SQL Server SPN");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("❌ Unexpected error: " + e.getMessage());
+        }
+    }
+}
