@@ -1,0 +1,209 @@
+# תוכנה לזיהוי משתמש AD באתר אינטראנט
+# דורש התקנה: pip install flask flask-login python-ldap3
+
+from flask import Flask, request, render_template_string, session, redirect, url_for
+from ldap3 import Server, Connection, ALL, NTLM
+import os
+import re
+
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'  # החלף במפתח בטוח
+
+# הגדרות AD
+AD_SERVER = 'your-domain-controller.company.com'  # כתובת ה-Domain Controller
+AD_DOMAIN = 'COMPANY'  # שם הדומיין
+AD_SEARCH_BASE = 'DC=company,DC=com'  # Base DN לחיפוש
+
+# תבנית HTML פשוטה
+LOGIN_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Intranet Login</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h2>כניסה לאינטראנט</h2>
+    {% if error %}
+        <div style="color: red;">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+        <div>
+            <label>שם משתמש:</label><br>
+            <input type="text" name="username" required>
+        </div>
+        <div>
+            <label>סיסמה:</label><br>
+            <input type="password" name="password" required>
+        </div>
+        <div>
+            <input type="submit" value="כניסה">
+        </div>
+    </form>
+</body>
+</html>
+'''
+
+DASHBOARD_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>אינטראנט - לוח בקרה</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h2>ברוך הבא, {{ user_info.displayName }}!</h2>
+    <div>
+        <h3>פרטי המשתמש:</h3>
+        <p><strong>שם מלא:</strong> {{ user_info.displayName }}</p>
+        <p><strong>שם משתמש:</strong> {{ user_info.sAMAccountName }}</p>
+        <p><strong>אימייל:</strong> {{ user_info.mail }}</p>
+        <p><strong>מחלקה:</strong> {{ user_info.department }}</p>
+        <p><strong>תפקיד:</strong> {{ user_info.title }}</p>
+        <p><strong>קבוצות:</strong> {{ ', '.join(user_info.groups) }}</p>
+    </div>
+    <a href="/logout">יציאה</a>
+</body>
+</html>
+'''
+
+class ADAuth:
+    def __init__(self, server, domain, search_base):
+        self.server = server
+        self.domain = domain
+        self.search_base = search_base
+    
+    def authenticate_user(self, username, password):
+        """אימות משתמש מול AD"""
+        try:
+            # יצירת חיבור לשרת AD
+            server = Server(self.server, get_info=ALL)
+            
+            # ניסיון התחברות עם פרטי המשתמש
+            user_dn = f"{self.domain}\\{username}"
+            conn = Connection(server, user=user_dn, password=password, authentication=NTLM)
+            
+            if not conn.bind():
+                return None, "שם משתמש או סיסמה שגויים"
+            
+            # חיפוש פרטי המשתמש
+            user_info = self.get_user_info(conn, username)
+            conn.unbind()
+            
+            return user_info, None
+            
+        except Exception as e:
+            return None, f"שגיאה בהתחברות: {str(e)}"
+    
+    def get_user_info(self, conn, username):
+        """קבלת פרטי המשתמש מ-AD"""
+        search_filter = f"(sAMAccountName={username})"
+        attributes = [
+            'displayName', 'sAMAccountName', 'mail', 
+            'department', 'title', 'memberOf'
+        ]
+        
+        conn.search(self.search_base, search_filter, attributes=attributes)
+        
+        if conn.entries:
+            entry = conn.entries[0]
+            
+            # עיבוד קבוצות
+            groups = []
+            if hasattr(entry, 'memberOf'):
+                for group_dn in entry.memberOf:
+                    # חילוץ שם הקבוצה מה-DN
+                    group_match = re.search(r'CN=([^,]+)', str(group_dn))
+                    if group_match:
+                        groups.append(group_match.group(1))
+            
+            return {
+                'displayName': str(entry.displayName) if hasattr(entry, 'displayName') else username,
+                'sAMAccountName': str(entry.sAMAccountName),
+                'mail': str(entry.mail) if hasattr(entry, 'mail') else '',
+                'department': str(entry.department) if hasattr(entry, 'department') else '',
+                'title': str(entry.title) if hasattr(entry, 'title') else '',
+                'groups': groups
+            }
+        
+        return None
+
+# יצירת אובייקט אימות
+ad_auth = ADAuth(AD_SERVER, AD_DOMAIN, AD_SEARCH_BASE)
+
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    """עמוד התחברות"""
+    if 'user_info' in session:
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # אימות מול AD
+        user_info, error = ad_auth.authenticate_user(username, password)
+        
+        if user_info:
+            session['user_info'] = user_info
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template_string(LOGIN_TEMPLATE, error=error)
+    
+    return render_template_string(LOGIN_TEMPLATE)
+
+@app.route('/dashboard')
+def dashboard():
+    """לוח בקרה למשתמש מחובר"""
+    if 'user_info' not in session:
+        return redirect(url_for('login'))
+    
+    user_info = session['user_info']
+    return render_template_string(DASHBOARD_TEMPLATE, user_info=user_info)
+
+@app.route('/logout')
+def logout():
+    """יציאה מהמערכת"""
+    session.pop('user_info', None)
+    return redirect(url_for('login'))
+
+# פונקציה לזיהוי אוטומטי של משתמש (Windows Authentication)
+def get_windows_user():
+    """ניסיון לזהות משתמש מ-Windows Authentication"""
+    # בדיקת HTTP headers
+    auth_user = request.environ.get('REMOTE_USER')
+    if auth_user:
+        # ניקוי שם המשתמש
+        if '\\' in auth_user:
+            auth_user = auth_user.split('\\')[1]
+        return auth_user
+    
+    # בדיקת משתנה סביבה
+    return os.environ.get('USERNAME')
+
+@app.route('/auto-login')
+def auto_login():
+    """ניסיון התחברות אוטומטית"""
+    windows_user = get_windows_user()
+    if windows_user:
+        # ניסיון קבלת פרטי המשתמש מ-AD ללא סיסמה
+        try:
+            server = Server(AD_SERVER, get_info=ALL)
+            # חיבור עם חשבון מערכת או שירות
+            conn = Connection(server)
+            if conn.bind():
+                user_info = ad_auth.get_user_info(conn, windows_user)
+                if user_info:
+                    session['user_info'] = user_info
+                    return redirect(url_for('dashboard'))
+                conn.unbind()
+        except:
+            pass
+    
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    # הרצה במצב פיתוח
+    print("התחלת שרת האינטראנט...")
+    print("גש לכתובת: http://localhost:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)
