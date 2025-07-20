@@ -77,6 +77,10 @@ namespace KeepAwake
             this.Controls.Add(statusLabel);
             this.Controls.Add(instructionsLabel);
 
+            // הוספת event handlers
+            this.Load += MainForm_Load;
+            this.FormClosing += MainForm_FormClosing;
+
             this.ResumeLayout(false);
 
             // הגדרת הטיימר
@@ -187,13 +191,14 @@ namespace KeepAwake
             SetCursorPos(currentPos.X, currentPos.Y);
         }
 
-        protected override void SetVisibleCore(bool value)
+        private void MainForm_Load(object sender, EventArgs e)
         {
             // התחלה במצב מוסתר
-            base.SetVisibleCore(false);
+            this.WindowState = FormWindowState.Minimized;
+            this.Hide();
         }
 
-        protected override void OnFormClosing(FormClosingEventArgs e)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // במקום לסגור, הסתר את החלון
             if (e.CloseReason == CloseReason.UserClosing)
@@ -204,8 +209,10 @@ namespace KeepAwake
             else
             {
                 StopKeepAwake();
-                trayIcon?.Dispose();
-                base.OnFormClosing(e);
+                if (trayIcon != null)
+                {
+                    trayIcon.Dispose();
+                }
             }
         }
     }
