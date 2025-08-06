@@ -1,5 +1,6 @@
 using System;
 using System.Data.Odbc;
+using Microsoft.Win32;
 
 namespace RedshiftConnectivityTest
 {
@@ -17,24 +18,41 @@ namespace RedshiftConnectivityTest
             string password = "your-password";
             string port = "5439"; // Default Redshift port
 
+            // Try different driver names - uncomment the one that works
+            // Option 1: 64-bit driver
+            string driverName = "Amazon Redshift (x64)";
+            
+            // Option 2: 32-bit driver (uncomment if using 32-bit)
+            //string driverName = "Amazon Redshift (x86)";
+            
+            // Option 3: Alternative driver name
+            //string driverName = "Amazon Redshift ODBC Driver (x64)";
+            
+            // Option 4: PostgreSQL driver (alternative)
+            //string driverName = "PostgreSQL ANSI";
+
             // Build connection string
             string connectionString = string.Format(
-                "Driver={{Amazon Redshift (x64)}};" +
-                "Server={0};" +
-                "Database={1};" +
-                "UID={2};" +
-                "PWD={3};" +
-                "Port={4};" +
+                "Driver={{{0}}};" +
+                "Server={1};" +
+                "Database={2};" +
+                "UID={3};" +
+                "PWD={4};" +
+                "Port={5};" +
                 "SSL=true;" +
                 "SSLMode=require",
-                server, database, username, password, port
+                driverName, server, database, username, password, port
             );
 
-            Console.WriteLine("Attempting to connect to Redshift...");
+            Console.WriteLine("Testing Redshift ODBC Connection...");
+            Console.WriteLine("Driver: " + driverName);
             Console.WriteLine("Server: " + server);
             Console.WriteLine("Database: " + database);
             Console.WriteLine("Username: " + username);
             Console.WriteLine();
+
+            // First, check available ODBC drivers
+            ListAvailableDrivers();
 
             TestConnection(connectionString);
 
@@ -108,6 +126,44 @@ namespace RedshiftConnectivityTest
                 }
             }
         }
+
+        static void ListAvailableDrivers()
+        {
+            Console.WriteLine("=== Available ODBC Drivers ===");
+            
+            try
+            {
+                RegistryKey driversKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers");
+                if (driversKey != null)
+                {
+                    string[] driverNames = driversKey.GetValueNames();
+                    
+                    if (driverNames.Length == 0)
+                    {
+                        Console.WriteLine("No ODBC drivers found!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Found " + driverNames.Length + " ODBC drivers:");
+                        foreach (string driverName in driverNames)
+                        {
+                            Console.WriteLine("  - " + driverName);
+                        }
+                    }
+                    driversKey.Close();
+                }
+                else
+                {
+                    Console.WriteLine("Unable to access ODBC drivers registry");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading ODBC drivers: " + ex.Message);
+            }
+            
+            Console.WriteLine();
+        }
     }
 }
 
@@ -116,3 +172,11 @@ namespace RedshiftConnectivityTest
 // 2. Update connection details at the beginning of the program
 // 3. Ensure port 5439 is open in your Security Group
 // 4. Verify user has proper access permissions
+
+// Troubleshooting IM002 Error:
+// 1. Download and install Amazon Redshift ODBC Driver from:
+//    https://docs.aws.amazon.com/redshift/latest/mgmt/configure-odbc-connection.html
+// 2. Check if you need 32-bit or 64-bit version (match your application)
+// 3. Try different driver names in the code above
+// 4. Verify driver installation in Windows ODBC Data Source Administrator
+// 5. Alternative: Use PostgreSQL driver as Redshift is PostgreSQL-compatible
