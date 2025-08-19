@@ -1,8 +1,8 @@
 import psycopg2
 from psycopg2 import sql
-from config import REDSHIFT_CONFIG, DATASHARE_NAME
+from config import REDSHIFT_CONFIG, DATASHARE_NAME, DRY_RUN
 
-def dry_run_update_datashare():
+def update_datashare():
     conn = psycopg2.connect(**REDSHIFT_CONFIG)
     conn.autocommit = True
     cur = conn.cursor()
@@ -19,20 +19,20 @@ def dry_run_update_datashare():
         for schema in schemas:
             print(f"\n📂 Schema: {schema}")
 
+            # פקודות על הסכמה
             add_schema = sql.SQL("ALTER DATASHARE {} ADD SCHEMA {}").format(
                 sql.Identifier(DATASHARE_NAME),
                 sql.Identifier(schema)
-            ).as_string(cur)
-
+            )
             include_new = sql.SQL("ALTER DATASHARE {} ADD SCHEMA {} INCLUDE NEW").format(
                 sql.Identifier(DATASHARE_NAME),
                 sql.Identifier(schema)
-            ).as_string(cur)
+            )
 
-            print("   ➡️", add_schema)
-            print("   ➡️", include_new)
+            _execute_or_print(cur, add_schema, f"Add schema {schema}")
+            _execute_or_print(cur, include_new, f"Add schema {schema} with INCLUDE NEW")
 
-            # --- שלב 2: שליפת טבלאות ---
+            # --- שלב 2: טבלאות ---
             cur.execute(sql.SQL("""
                 SELECT table_name
                 FROM information_schema.tables
@@ -45,12 +45,23 @@ def dry_run_update_datashare():
                     sql.Identifier(DATASHARE_NAME),
                     sql.Identifier(schema),
                     sql.Identifier(table)
-                ).as_string(cur)
-                print("   ➡️", add_table)
+                )
+                _execute_or_print(cur, add_table, f"Add table {schema}.{table}")
 
     finally:
         cur.close()
         conn.close()
 
+def _execute_or_print(cur, query, description):
+    """מריץ או מדפיס בהתאם ל-DRY_RUN"""
+    if DRY_RUN:
+        print("   ➡️", query.as_string(cur))
+    else:
+        try:
+            cur.execute(query)
+            print(f"✅ {description}")
+        except Exception as e:
+            print(f"⚠️ Skipped {description}: {e}")
+
 if __name__ == "__main__":
-    dry_run_update_datashare()
+    update_datashare()
