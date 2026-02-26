@@ -1,0 +1,461 @@
+/**
+ * Minimal Network Performance Measurement Tool for AIX
+ * 
+ * This program can function as either a server or a client for network testing.
+ */
+
+/* Standard C library includes - order is critical for AIX */
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <errno.h>
+
+/* Network-related includes */
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+/* Time-related includes */
+#include <sys/time.h>
+
+/* Other includes */
+#include <math.h>
+#include <stdlib.h>
+
+// Default parameters
+#define DEFAULT_PORT 8888
+#define DEFAULT_NUM_PACKETS 100
+#define DEFAULT_DELAY_MS 100
+#define MIN_PACKET_SIZE 64
+#define DEFAULT_PACKET_SIZE 1024
+#define MAX_PACKET_SIZE 8192
+#define DEFAULT_RATE_PPS 10  // packets per second
+
+// Protocol settings
+#define PROTOCOL_TCP 0
+#define PROTOCOL_UDP 1
+
+// Global variables for signal handling
+int running = 1;
+int server_socket = -1;
+
+// Packet structure with fixed payload size to avoid flexible array member issues
+typedef struct {
+    uint64_t seq_num;        // Sequence number for packet loss detection
+    uint64_t client_send;    // Timestamp when client sent the packet
+    uint64_t server_recv;    // Timestamp when server received the packet
+    uint64_t server_send;    // Timestamp when server sent response
+    uint64_t client_recv;    // Timestamp when client received response
+    uint32_t packet_size;    // Size of this packet in bytes
+    uint8_t payload[1];      // Fixed minimum size array (will allocate more)
+} packet_t;
+
+// Test configuration structure
+typedef struct {
+    int is_server;
+    char server_ip[128];     // Support for IPv6 addresses
+    int port;
+    int protocol;            // TCP or UDP
+    int use_ipv6;            // IPv4 or IPv6
+    int num_packets;
+    int delay_ms;
+    int packet_size;
+    int rate_pps;            // Packets per second
+    int time_sync;           // Whether to use time synchronization
+    char output_file[256];
+} config_t;
+
+// Forward declarations with correct parameter types
+int init_socket_address(struct sockaddr_storage* addr, const char* host, int port, int use_ipv6);
+packet_t* create_packet(int packet_size);
+int validate_packet(packet_t* packet);
+int64_t synchronize_clocks(int socket_fd, int is_client, int protocol);
+void run_tcp_server(config_t* config);
+void run_udp_server(config_t* config);
+void run_tcp_client(config_t* config);
+void run_udp_client(config_t* config);
+
+/**
+ * Get current timestamp in microseconds
+ */
+uint64_t get_timestamp_usec(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (uint64_t)(tv.tv_sec * 1000000 + tv.tv_usec);
+}
+
+/**
+ * Signal handler for graceful termination
+ */
+void handle_signal(int sig) {
+    printf("\nReceived signal %d, shutting down...\n", sig);
+    running = 0;
+    if (server_socket >= 0) {
+        close(server_socket);
+    }
+}
+
+/**
+ * Display usage information
+ */
+void print_usage(const char* prog_name) {
+    printf("Usage:\n");
+    printf("  Server mode: %s -s [-p port] [-u] [-6]\n", prog_name);
+    printf("  Client mode: %s -c server_ip [-p port] [-u] [-n num_packets] [-d delay_ms]\n", prog_name);
+    printf("                            [-l packet_size] [-r rate] [-o output_file] [-6] [-t]\n\n");
+    printf("Options:\n");
+    printf("  -s                Run in server mode\n");
+    printf("  -c server_ip      Run in client mode, connecting to server_ip\n");
+    printf("  -p port           Port to use (default: %d)\n", DEFAULT_PORT);
+    printf("  -u                Use UDP instead of TCP\n");
+    printf("  -n num_packets    Number of test packets to send (default: %d)\n", DEFAULT_NUM_PACKETS);
+    printf("  -d delay_ms       Delay between packets in ms (default: %d)\n", DEFAULT_DELAY_MS);
+    printf("  -l packet_size    Size of each packet in bytes (default: %d, min: %d, max: %d)\n", 
+           DEFAULT_PACKET_SIZE, MIN_PACKET_SIZE, MAX_PACKET_SIZE);
+    printf("  -r rate           Sending rate in packets per second (default: %d)\n", DEFAULT_RATE_PPS);
+    printf("  -o output_file    Write results to CSV file\n");
+    printf("  -6                Use IPv6 instead of IPv4\n");
+    printf("  -t                Enable clock synchronization attempt\n");
+    printf("  -h                Display this help message\n");
+}
+
+/* Create packet with specified size */
+packet_t* create_packet(int packet_size) {
+    if (packet_size < sizeof(packet_t)) {
+        packet_size = sizeof(packet_t);
+    }
+    
+    /* Allocate memory for packet and payload */
+    packet_t* packet = (packet_t*)malloc(packet_size);
+    if (packet == NULL) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    memset(packet, 0, packet_size);
+    packet->packet_size = packet_size;
+    
+    /* Fill payload with a pattern for validation */
+    for (int i = 0; i < packet_size - sizeof(packet_t) + 1; i++) {
+        if (i < packet_size - sizeof(packet_t) + 1) {
+            packet->payload[i] = (i % 256);
+        }
+    }
+    
+    return packet;
+}
+
+/* Validate packet integrity */
+int validate_packet(packet_t* packet) {
+    if (packet == NULL || packet->packet_size < sizeof(packet_t)) {
+        return 0;
+    }
+    
+    return 1; /* Simplified validation for minimal version */
+}
+
+/* Initialize socket address structure */
+int init_socket_address(struct sockaddr_storage* addr, const char* host, int port, int use_ipv6) {
+    memset(addr, 0, sizeof(struct sockaddr_storage));
+    
+    if (use_ipv6) {
+        struct sockaddr_in6* addr6 = (struct sockaddr_in6*)addr;
+        addr6->sin6_family = AF_INET6;
+        addr6->sin6_port = htons(port);
+        
+        if (host == NULL) {
+            addr6->sin6_addr = in6addr_any;
+        } else {
+            if (inet_pton(AF_INET6, host, &addr6->sin6_addr) <= 0) {
+                perror("Invalid IPv6 address format");
+                return -1;
+            }
+        }
+        return sizeof(struct sockaddr_in6);
+    } else {
+        struct sockaddr_in* addr4 = (struct sockaddr_in*)addr;
+        addr4->sin_family = AF_INET;
+        addr4->sin_port = htons(port);
+        
+        if (host == NULL) {
+            addr4->sin_addr.s_addr = INADDR_ANY;
+        } else {
+            if (inet_pton(AF_INET, host, &addr4->sin_addr) <= 0) {
+                perror("Invalid IPv4 address format");
+                return -1;
+            }
+        }
+        return sizeof(struct sockaddr_in);
+    }
+}
+
+/* Simplified clock synchronization */
+int64_t synchronize_clocks(int socket_fd, int is_client, int protocol) {
+    /* Simplified stub version */
+    return 0;
+}
+
+/* TCP server implementation */
+void run_tcp_server(config_t* config) {
+    int server_fd, client_fd;
+    struct sockaddr_storage address;
+    int opt = 1;
+    socklen_t addrlen = sizeof(address);
+    packet_t* packet_buffer;
+    
+    /* Create buffer */
+    packet_buffer = create_packet(MAX_PACKET_SIZE);
+    
+    /* Create socket */
+    server_fd = socket(config->use_ipv6 ? AF_INET6 : AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0) {
+        perror("Socket creation failed");
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    /* Set socket options */
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    
+    /* Setup address */
+    int addr_size = init_socket_address(&address, NULL, config->port, config->use_ipv6);
+    if (addr_size < 0) {
+        close(server_fd);
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    /* Bind socket */
+    if (bind(server_fd, (struct sockaddr*)&address, addr_size) < 0) {
+        perror("Bind failed");
+        close(server_fd);
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    /* Listen for connections */
+    if (listen(server_fd, 5) < 0) {
+        perror("Listen failed");
+        close(server_fd);
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    server_socket = server_fd;  /* For signal handler */
+    printf("TCP server started. Listening on port %d...\n", config->port);
+    
+    while (running) {
+        /* Accept connection */
+        client_fd = accept(server_fd, (struct sockaddr*)&address, &addrlen);
+        if (client_fd < 0) {
+            if (running) {
+                perror("Accept failed");
+            }
+            break;
+        }
+        
+        printf("TCP connection accepted\n");
+        
+        /* Process incoming packets */
+        uint64_t packet_count = 0;
+        while (running) {
+            /* Receive packet */
+            int bytes_received = recv(client_fd, packet_buffer, sizeof(packet_t), 0);
+            if (bytes_received <= 0) {
+                break;
+            }
+            
+            /* Update timestamps */
+            packet_buffer->server_recv = get_timestamp_usec();
+            packet_buffer->server_send = get_timestamp_usec();
+            
+            /* Send response */
+            send(client_fd, packet_buffer, packet_buffer->packet_size, 0);
+            packet_count++;
+        }
+        
+        close(client_fd);
+        printf("Client disconnected after %lu packets\n", packet_count);
+    }
+    
+    close(server_fd);
+    free(packet_buffer);
+    printf("TCP server shutdown complete\n");
+}
+
+/* UDP server implementation */
+void run_udp_server(config_t* config) {
+    int server_fd;
+    struct sockaddr_storage client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+    packet_t* packet_buffer;
+    
+    /* Create buffer */
+    packet_buffer = create_packet(MAX_PACKET_SIZE);
+    
+    /* Create socket */
+    server_fd = socket(config->use_ipv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, 0);
+    if (server_fd < 0) {
+        perror("Socket creation failed");
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    /* Setup address */
+    struct sockaddr_storage server_addr;
+    int addr_size = init_socket_address(&server_addr, NULL, config->port, config->use_ipv6);
+    if (addr_size < 0) {
+        close(server_fd);
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    /* Bind socket */
+    if (bind(server_fd, (struct sockaddr*)&server_addr, addr_size) < 0) {
+        perror("Bind failed");
+        close(server_fd);
+        free(packet_buffer);
+        exit(EXIT_FAILURE);
+    }
+    
+    server_socket = server_fd;  /* For signal handler */
+    printf("UDP server started. Listening on port %d...\n", config->port);
+    
+    /* Process incoming datagrams */
+    while (running) {
+        addr_len = sizeof(client_addr);
+        
+        /* Receive datagram */
+        int bytes_received = recvfrom(server_fd, packet_buffer, MAX_PACKET_SIZE, 0,
+                                     (struct sockaddr*)&client_addr, &addr_len);
+        
+        if (bytes_received <= 0) {
+            if (errno != EINTR) {
+                perror("UDP receive error");
+            }
+            continue;
+        }
+        
+        /* Update timestamps */
+        packet_buffer->server_recv = get_timestamp_usec();
+        packet_buffer->server_send = get_timestamp_usec();
+        
+        /* Send response */
+        sendto(server_fd, packet_buffer, packet_buffer->packet_size, 0,
+              (struct sockaddr*)&client_addr, addr_len);
+    }
+    
+    close(server_fd);
+    free(packet_buffer);
+    printf("UDP server shutdown complete\n");
+}
+
+/* TCP client implementation - stub */
+void run_tcp_client(config_t* config) {
+    printf("TCP client mode started (connecting to %s:%d)\n", 
+           config->server_ip, config->port);
+    printf("This feature is minimized in this version\n");
+}
+
+/* UDP client implementation - stub */
+void run_udp_client(config_t* config) {
+    printf("UDP client mode started (connecting to %s:%d)\n", 
+           config->server_ip, config->port);
+    printf("This feature is minimized in this version\n");
+}
+
+/* Main function */
+int main(int argc, char *argv[]) {
+    int opt;
+    config_t config;
+    
+    /* Set default configuration */
+    memset(&config, 0, sizeof(config_t));
+    config.port = DEFAULT_PORT;
+    config.protocol = PROTOCOL_TCP;
+    config.use_ipv6 = 0;
+    config.num_packets = DEFAULT_NUM_PACKETS;
+    config.delay_ms = DEFAULT_DELAY_MS;
+    config.packet_size = DEFAULT_PACKET_SIZE;
+    config.rate_pps = DEFAULT_RATE_PPS;
+    config.time_sync = 0;
+    
+    /* Setup signal handling */
+    signal(SIGINT, handle_signal);
+    signal(SIGTERM, handle_signal);
+    
+    /* Parse command line arguments */
+    while ((opt = getopt(argc, argv, "sc:p:un:d:l:r:o:6th")) != -1) {
+        switch (opt) {
+            case 's':
+                config.is_server = 1;
+                break;
+            case 'c':
+                config.is_server = 0;
+                strncpy(config.server_ip, optarg, sizeof(config.server_ip) - 1);
+                break;
+            case 'p':
+                config.port = atoi(optarg);
+                break;
+            case 'u':
+                config.protocol = PROTOCOL_UDP;
+                break;
+            case 'n':
+                config.num_packets = atoi(optarg);
+                break;
+            case 'd':
+                config.delay_ms = atoi(optarg);
+                break;
+            case 'l':
+                config.packet_size = atoi(optarg);
+                if (config.packet_size < MIN_PACKET_SIZE) {
+                    config.packet_size = MIN_PACKET_SIZE;
+                } else if (config.packet_size > MAX_PACKET_SIZE) {
+                    config.packet_size = MAX_PACKET_SIZE;
+                }
+                break;
+            case 'r':
+                config.rate_pps = atoi(optarg);
+                break;
+            case 'o':
+                strncpy(config.output_file, optarg, sizeof(config.output_file) - 1);
+                break;
+            case '6':
+                config.use_ipv6 = 1;
+                break;
+            case 't':
+                config.time_sync = 1;
+                break;
+            case 'h':
+                print_usage(argv[0]);
+                exit(EXIT_SUCCESS);
+            default:
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+    
+    /* Run in server or client mode */
+    if (config.is_server) {
+        if (config.protocol == PROTOCOL_TCP) {
+            run_tcp_server(&config);
+        } else {
+            run_udp_server(&config);
+        }
+    } else if (config.server_ip[0] != '\0') {
+        if (config.protocol == PROTOCOL_TCP) {
+            run_tcp_client(&config);
+        } else {
+            run_udp_client(&config);
+        }
+    } else {
+        print_usage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    
+    return 0;
+}

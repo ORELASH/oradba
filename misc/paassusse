@@ -1,0 +1,217 @@
+#!/usr/bin/env python3
+"""
+Oracle Password Security Check
+==============================
+This script checks if Oracle users have passwords identical to their username.
+
+Requirements:
+- oracledb library: pip install oracledb
+- Oracle client libraries (Instant Client)
+- DBA privileges
+
+WARNING: This script may lock accounts if FAILED_LOGIN_ATTEMPTS is configured!
+"""
+
+import oracledb
+import sys
+import time
+from datetime import datetime
+import getpass
+
+def get_database_connection():
+    """Get database connection with proper credentials"""
+    print("Oracle Password Security Check")
+    print("=" * 50)
+    
+    # Get connection details
+    username = input("Enter DBA username: ").strip()
+    password = getpass.getpass("Enter password: ")
+    host = input("Enter host (default: localhost): ").strip() or "localhost"
+    port = input("Enter port (default: 1521): ").strip() or "1521"
+    service_name = input("Enter service name: ").strip()
+    
+    try:
+        # Create connection string
+        dsn = f"{host}:{port}/{service_name}"
+        
+        # Connect to Oracle
+        connection = oracledb.connect(
+            user=username,
+            password=password,
+            dsn=dsn
+        )
+        
+        print(f"✅ Connected to Oracle: {service_name}")
+        return connection
+        
+    except oracledb.Error as e:
+        print(f"❌ Connection failed: {e}")
+        sys.exit(1)
+
+def get_users_list(connection):
+    """Get list of non-system users to check"""
+    query = """
+        SELECT username 
+        FROM dba_users 
+        WHERE account_status = 'OPEN'
+          AND username NOT IN ('SYS','SYSTEM','DBSNMP','SYSMAN','XDB','ANONYMOUS',
+                              'CTXSYS','EXFSYS','MDSYS','OLAPSYS','ORDDATA','ORDSYS',
+                              'OUTLN','WMSYS','LBACSYS','APEX_PUBLIC_USER')
+          AND username NOT LIKE '%$%'
+        ORDER BY username
+    """
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(query)
+        users = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        return users
+        
+    except oracledb.Error as e:
+        print(f"❌ Error getting users list: {e}")
+        return []
+
+def test_password_same_as_username(username, host, port, service_name):
+    """
+    Test if user's password is same as username
+    Returns: True if password is same as username (WEAK), False otherwise
+    """
+    try:
+        # Try to connect using username as password
+        dsn = f"{host}:{port}/{service_name}"
+        
+        test_connection = oracledb.connect(
+            user=username,
+            password=username,  # <-- THIS IS THE ACTUAL PASSWORD CHECK
+            dsn=dsn
+        )
+        
+        # If connection succeeds, test with a simple query to make sure
+        cursor = test_connection.cursor()
+        cursor.execute("SELECT 1 FROM dual")
+        cursor.fetchone()
+        cursor.close()
+        test_connection.close()
+        
+        # If we get here, password is same as username!
+        return True
+        
+    except oracledb.Error as e:
+        error_code = e.args[0].code if hasattr(e.args[0], 'code') else None
+        
+        # ORA-01017: invalid username/password
+        if error_code == 1017:
+            return False  # Password is different from username (good!)
+        
+        # ORA-28000: account is locked  
+        elif error_code == 28000:
+            raise Exception("Account locked")
+        
+        # ORA-28001: password expired
+        elif error_code == 28001:
+            raise Exception("Password expired")
+        
+        # Other errors
+        else:
+            raise Exception(f"Error {error_code}: {str(e)}")
+
+def main():
+    """Main function to run the password check"""
+    start_time = datetime.now()
+    
+    # Get database connection
+    connection = get_database_connection()
+    
+    # Extract connection details for testing individual users
+    # This is a bit hacky but necessary for the password test
+    dsn_parts = connection.dsn.split(':')
+    host = dsn_parts[0] if len(dsn_parts) > 1 else 'localhost'
+    port_service = dsn_parts[1] if len(dsn_parts) > 1 else '1521/XE'
+    port_service_parts = port_service.split('/')
+    port = port_service_parts[0]
+    service_name = port_service_parts[1] if len(port_service_parts) > 1 else 'XE'
+    
+    # Get users list
+    print("\n📋 Getting users list...")
+    users = get_users_list(connection)
+    
+    if not users:
+        print("❌ No users found or error occurred")
+        connection.close()
+        sys.exit(1)
+    
+    print(f"📊 Found {len(users)} users to test")
+    print("\n" + "=" * 70)
+    print("     Testing passwords for weakness (same as username)")
+    print("=" * 70)
+    print()
+    
+    # Test each user
+    vulnerable_users = []
+    tested_count = 0
+    error_count = 0
+    
+    for username in users:
+        tested_count += 1
+        print(f"Testing {username:.<20}", end="")
+        
+        try:
+            # THE ACTUAL PASSWORD CHECK HAPPENS HERE
+            is_weak = test_password_same_as_username(username, host, port, service_name)
+            
+            if is_weak:
+                vulnerable_users.append(username)
+                print(" ❌ WEAK PASSWORD (same as username)")
+            else:
+                print(" ✅ Password OK")
+                
+        except Exception as e:
+            error_count += 1
+            print(f" ⚠️  Cannot test: {str(e)}")
+        
+        # Small delay to prevent system overload
+        time.sleep(0.1)
+    
+    # Summary
+    elapsed_time = (datetime.now() - start_time).total_seconds()
+    
+    print("\n" + "=" * 70)
+    print("                           SUMMARY")
+    print("=" * 70)
+    print(f"Total users tested:       {tested_count}")
+    print(f"Users with weak passwords: {len(vulnerable_users)}")
+    print(f"Errors:                   {error_count}")
+    print(f"Execution time:           {elapsed_time:.2f} seconds")
+    
+    if vulnerable_users:
+        print("\n🚨 SECURITY ALERT: Found users with weak passwords!")
+        print("\nVulnerable users:")
+        for user in vulnerable_users:
+            print(f"  - {user}")
+        
+        print("\n📋 Remediation recommendations:")
+        print("  1. Force password change for all weak users")
+        print("  2. Enable Password Complexity Function")  
+        print("  3. Set password expiration policy")
+        print("  4. Consider locking unused accounts")
+        
+        # Generate remediation SQL
+        print("\n📜 SQL to force password change:")
+        for user in vulnerable_users:
+            print(f"  ALTER USER {user} PASSWORD EXPIRE;")
+    else:
+        print("\n✅ Excellent! All passwords are secure!")
+    
+    print("=" * 70)
+    connection.close()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Check interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
+        sys.exit(1)

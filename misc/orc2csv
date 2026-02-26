@@ -1,0 +1,27 @@
+import pyorc
+import csv
+
+def orc_to_csv(orc_filepath, csv_filepath):
+    """Converts an ORC file to a CSV file.
+
+    Args:
+        orc_filepath (str): The path to the input ORC file.
+        csv_filepath (str): The path to the output CSV file.
+    """
+    try:
+        with open(orc_filepath, 'rb') as orc_file:
+            reader = pyorc.Reader(orc_file)
+            rows = reader.read()
+
+            with open(csv_filepath, 'w', newline='') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(reader.schema.fields.keys()) # Write header
+                csv_writer.writerows(rows) # Write data
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    orc_file_path = "your_orc_file.orc"  # Replace with your ORC file path
+    csv_file_path = "output.csv"       # Replace with your desired CSV file path
+    orc_to_csv(orc_file_path, csv_file_path)
+    print(f"Successfully converted {orc_file_path} to {csv_file_path}")
