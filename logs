@@ -1,0 +1,1968 @@
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLAllocHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000027199420920
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000027199420920 ( 0x00000271965DB8C0)
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLSetEnvAttr 
+		SQLHENV             0x00000271965DB8C0
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLSetEnvAttr  with return code 0 (SQL_SUCCESS)
+		SQLHENV             0x00000271965DB8C0
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLAllocHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB8C0
+		SQLHANDLE *         0x0000027199420940
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB8C0
+		SQLHANDLE *         0x0000027199420940 ( 0x00000271965DB9A0)
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DB9A0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DB9A0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DB9A0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DB9A0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLDriverConnectW 
+		HDBC                0x00000271965DB9A0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLDriverConnectW  with return code -1 (SQL_ERROR)
+		HDBC                0x00000271965DB9A0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+		DIAG [HY000] [Redshift][ODBC Driver][Redshift][ODBC Driver][Server]no connection to the server
+ (0) 
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLGetDiagRecW 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+		SQLSMALLINT                  1 
+		SQLWCHAR *          0x000000D6089FEC60
+		SQLINTEGER *        0x000000D6089FEDD8
+		SQLWCHAR *          0x00000271981AB690 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x000000D6089FEDC8
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLGetDiagRecW  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+		SQLSMALLINT                  1 
+		SQLWCHAR *          0x000000D6089FEC60 [       5] "HY000"
+		SQLINTEGER *        0x000000D6089FEDD8 (0)
+		SQLWCHAR *          0x00000271981AB690 [      82] "[Redshift][ODBC Driver][Redshift][ODBC Driver][Server]no connection to the server\ a"
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x000000D6089FEDC8 (82)
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLGetDiagRecW 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+		SQLSMALLINT                  2 
+		SQLWCHAR *          0x000000D6089FEC60
+		SQLINTEGER *        0x000000D6089FEDD8
+		SQLWCHAR *          0x00000271981AB690 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x000000D6089FEDC8
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLGetDiagRecW  with return code 100 (SQL_NO_DATA_FOUND)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+		SQLSMALLINT                  2 
+		SQLWCHAR *          0x000000D6089FEC60
+		SQLINTEGER *        0x000000D6089FEDD8
+		SQLWCHAR *          0x00000271981AB690 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x000000D6089FEDC8
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLFreeHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DB9A0
+
+7bc26dbd-b3ea-4 3e90-1be4	ENTER SQLFreeHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DB8C0
+
+7bc26dbd-b3ea-4 3e90-1be4	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DB8C0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000027199293530
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000027199293530 ( 0x00000271965DCE50)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetEnvAttr 
+		SQLHENV             0x00000271965DCE50
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetEnvAttr  with return code 0 (SQL_SUCCESS)
+		SQLHENV             0x00000271965DCE50
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DCE50
+		SQLHANDLE *         0x0000027199293050
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DCE50
+		SQLHANDLE *         0x0000027199293050 ( 0x00000271965DE8D0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLDriverConnectW 
+		HDBC                0x00000271965DE8D0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLDriverConnectW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 <Invalid buffer length!> [-3]
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetFunctions 
+		HDBC                0x00000271965DE8D0
+		UWORD                     1021 
+		UWORD *             0x000000D6091FE6D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetFunctions  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                     1021 
+		UWORD *             0x000000D6091FE6D0 (1)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       29 <SQL_IDENTIFIER_QUOTE_CHAR>
+		PTR                 0x000000D6091FED40 
+		SWORD                       20 
+		SWORD *             0x000000D6091FEC80
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       29 <SQL_IDENTIFIER_QUOTE_CHAR>
+		PTR                 0x000000D6091FED40 [       2] """
+		SWORD                       20 
+		SWORD *             0x000000D6091FEC80 (2)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                        6 <SQL_DRIVER_NAME>
+		PTR                 0x000000D6091FEC20 
+		SWORD                      200 
+		SWORD *             0x000000D6091FEAB0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                        6 <SQL_DRIVER_NAME>
+		PTR                 0x000000D6091FEC20 [      20] "rsodbc.dll"
+		SWORD                      200 
+		SWORD *             0x000000D6091FEAB0 (20)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLDisconnect 
+		HDBC                0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLDisconnect  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DCE50
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DCE50
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x000002719948AEC0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x000002719948AEC0 ( 0x00000271965DCE50)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetEnvAttr 
+		SQLHENV             0x00000271965DCE50
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                  -5 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetEnvAttr  with return code 0 (SQL_SUCCESS)
+		SQLHENV             0x00000271965DCE50
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                  -5 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DCE50
+		SQLHANDLE *         0x000002719948AEC8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DCE50
+		SQLHANDLE *         0x000002719948AEC8 ( 0x00000271965DE8D0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                  -5 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                  -5 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x00000271965DE8D0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLDriverConnectW 
+		HDBC                0x00000271965DE8D0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLDriverConnectW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 <Invalid buffer length!> [-3]
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetFunctions 
+		HDBC                0x00000271965DE8D0
+		UWORD                       59 
+		UWORD *             0x000000D6091FDCE0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetFunctions  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       59 
+		UWORD *             0x000000D6091FDCE0 (1)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                      111 <SQL_NEED_LONG_DATA_LEN>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                      111 <SQL_NEED_LONG_DATA_LEN>
+		PTR                 0x000000D6091FDE00 [       2] "Y"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (2)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       39 <SQL_OWNER_TERM>
+		PTR                 0x000000D6091FE2A0 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDD28
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       39 <SQL_OWNER_TERM>
+		PTR                 0x000000D6091FE2A0 [      12] "schema"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDD28 (12)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       29 <SQL_IDENTIFIER_QUOTE_CHAR>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       29 <SQL_IDENTIFIER_QUOTE_CHAR>
+		PTR                 0x000000D6091FDE00 [       2] """
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (2)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       77 <SQL_DRIVER_ODBC_VER>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       77 <SQL_DRIVER_ODBC_VER>
+		PTR                 0x000000D6091FDE00 [      10] "03.52"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (10)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       17 <SQL_DBMS_NAME>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       17 <SQL_DBMS_NAME>
+		PTR                 0x000000D6091FDE00 [      16] "Redshift"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (16)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                        6 <SQL_DRIVER_NAME>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                        6 <SQL_DRIVER_NAME>
+		PTR                 0x000000D6091FDE00 [      20] "rsodbc.dll"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (20)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       18 <SQL_DBMS_VER>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       18 <SQL_DBMS_VER>
+		PTR                 0x000000D6091FDE00 [      20] "1.0.227967"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (20)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       13 <SQL_SERVER_NAME>
+		PTR                 0x000000D6091FE370 
+		SWORD                      300 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       13 <SQL_SERVER_NAME>
+		PTR                 0x000000D6091FE370 [      98] "secupi-prd-gw-redscdoresearch.cyber.leumi-aws.prd"
+		SWORD                      300 
+		SWORD *             0x000000D6091FDCA8 (98)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       16 <SQL_DATABASE_NAME>
+		PTR                 0x000000D6091FE4A0 
+		SWORD                      300 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       16 <SQL_DATABASE_NAME>
+		PTR                 0x000000D6091FE4A0 [       6] "dev"
+		SWORD                      300 
+		SWORD *             0x000000D6091FDCA8 (6)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                        7 <SQL_DRIVER_VER>
+		PTR                 0x000000D6091FDE00 
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                        7 <SQL_DRIVER_VER>
+		PTR                 0x000000D6091FDE00 [      12] "2,1,13"
+		SWORD                      200 
+		SWORD *             0x000000D6091FDCA8 (12)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetInfoW 
+		HDBC                0x00000271965DE8D0
+		UWORD                       81 <SQL_GETDATA_EXTENSIONS>
+		PTR                 0x000000D6091FE618
+		SWORD                        4 
+		SWORD *             0x0000000000000000
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetInfoW  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       81 <SQL_GETDATA_EXTENSIONS>
+		PTR                 0x000000D6091FE618 ( 0x000000D60000000B)
+		SWORD                        4 
+		SWORD *             0x0000000000000000
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x00000271994B1940
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x00000271994B1940 ( 0x00000271965DA4A0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetFunctions 
+		HDBC                0x00000271965DE8D0
+		UWORD                       47 
+		UWORD *             0x000000D6091FE618
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetFunctions  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       47 
+		UWORD *             0x000000D6091FE618 (1)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x000000D6091FE628
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x000000D6091FE628 ( 0x00000271965DAAF0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        1 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE4E0
+		SQLLEN                   258
+		SQLLEN *            0x000000D6091FE4C0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        1 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE4E0
+		SQLLEN                   258
+		SQLLEN *            0x000000D6091FE4C0 (919276086576)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        3 
+		SWORD                      -16 <SQL_C_SLONG>
+		PTR                0x000000D6091FE620
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE4C8
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        3 
+		SWORD                      -16 <SQL_C_SLONG>
+		PTR                0x000000D6091FE620
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE4C8 (249868312379392)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                       16 
+		SWORD                      -15 <SQL_C_SSHORT>
+		PTR                0x000000D6091FE610
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE4D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                       16 
+		SWORD                      -15 <SQL_C_SSHORT>
+		PTR                0x000000D6091FE610
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE4D0 (2686924173968)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetTypeInfo 
+		HSTMT               0x00000271965DAAF0
+		SWORD                       -4 <SQL_LONGVARBINARY>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetTypeInfo  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		SWORD                       -4 <SQL_LONGVARBINARY>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFetch 
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFetch  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFetch 
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFetch  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFetch 
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFetch  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFetch 
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFetch  with return code 100 (SQL_NO_DATA_FOUND)
+		HSTMT               0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeStmt 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeStmt  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLGetFunctions 
+		HDBC                0x00000271965DE8D0
+		UWORD                       65 
+		UWORD *             0x000000D6091FE500
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLGetFunctions  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+		UWORD                       65 
+		UWORD *             0x000000D6091FE500 (1)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLAllocHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x000000D6091FE518
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLHANDLE *         0x000000D6091FE518 ( 0x00000271965DAAF0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        4 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE290
+		SQLLEN                   264
+		SQLLEN *            0x000000D6091FE278
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        4 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE290
+		SQLLEN                   264
+		SQLLEN *            0x000000D6091FE278 (2684404891651)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        5 
+		SWORD                      -15 <SQL_C_SSHORT>
+		PTR                0x000000D6091FE508
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE280
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        5 
+		SWORD                      -15 <SQL_C_SSHORT>
+		PTR                0x000000D6091FE508
+		SQLLEN                     0
+		SQLLEN *            0x000000D6091FE280 (2686926496192)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        6 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE3A0
+		SQLLEN                   264
+		SQLLEN *            0x000000D6091FE288
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        6 
+		SWORD                       -8 <SQL_C_WCHAR>
+		PTR                0x000000D6091FE3A0
+		SQLLEN                   264
+		SQLLEN *            0x000000D6091FE288 (2181058509)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLPrimaryKeysW 
+		HSTMT               0x00000271965DAAF0
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLPrimaryKeysW  with return code -1 (SQL_ERROR)
+		HSTMT               0x00000271965DAAF0
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+		WCHAR *             0x0000000000000000 <null pointer>
+		SWORD                        0 
+
+		DIAG [HY009] [Microsoft][ODBC Driver Manager] Invalid use of null pointer (0) 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeStmt 
+		HSTMT               0x00000271965DAAF0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeStmt  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DAAF0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DAAF0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLPrepareW 
+		HSTMT               0x00000271965DA4A0
+		WCHAR *             0x000002719951029E [    1464] "SELECT EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases \ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_camp_bases_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.sf_levids_customer_to_dwh_keys \ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas sf_levids_customer_to_dwh_keys_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.seg_g7761_click_leads_new_his\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_g7761_click_leads_new_his_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.segv_g7903_sales_rt\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas segv_g7903_sales_rt_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.segv_master_new\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas segv_master_new_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases_new\ aWHERE insert_date = CAST (getdate() as DATE) LIMIT 1) \ aas seg_camp_bases_new_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases_api_results\ aWHERE id = 'Abandonment Loans General DT' and ingest_date = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_camp_bases_api_results_has_data"
+		SDWORD                  1464
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLPrepareW  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		WCHAR *             0x000002719951029E [    1464] "SELECT EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases \ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_camp_bases_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.sf_levids_customer_to_dwh_keys \ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas sf_levids_customer_to_dwh_keys_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.seg_g7761_click_leads_new_his\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_g7761_click_leads_new_his_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.segv_g7903_sales_rt\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas segv_g7903_sales_rt_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.tcrmseg.segv_master_new\ aWHERE TO_CHAR(CAST (ingest_timestamp as DATE),'yyyyMMdd') = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas segv_master_new_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases_new\ aWHERE insert_date = CAST (getdate() as DATE) LIMIT 1) \ aas seg_camp_bases_new_has_data\ a,EXISTS \ a(SELECT 1 FROM cdodatalake.crm5u_db.seg_camp_bases_api_results\ aWHERE id = 'Abandonment Loans General DT' and ingest_date = TO_CHAR(CAST (getdate() as DATE),'yyyyMMdd') LIMIT 1) \ aas seg_camp_bases_api_results_has_data"
+		SDWORD                  1464
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLNumResultCols 
+		HSTMT               0x00000271965DA4A0
+		SWORD *             0x000000D6091FE250
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLNumResultCols  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		SWORD *             0x000000D6091FE250 (7)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (46)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  1 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (78)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  2 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (76)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  3 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (56)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  4 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (48)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  5 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (54)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  6 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                 11 <SQL_DESC_AUTO_UNIQUE_VALUE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (0) <FALSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1003 <SQL_DESC_LENGTH>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1003]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1011 <SQL_DESC_NAME>
+		SQLPOINTER         0x000000D6091FDE30
+		SQLSMALLINT                512 
+		SQLSMALLINT *       0x000000D6091FE250 (70)
+		SQLPOINTER          [Unknown attribute 1011]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT                  2 <SQL_DESC_CONCISE_TYPE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          0x000000D6091FE200 (4294967289) <unknown>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1005 <SQL_DESC_PRECISION>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1005]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLColAttributeW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLColAttributeW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLSMALLINT                  7 
+		SQLSMALLINT               1006 <SQL_DESC_SCALE>
+		SQLPOINTER         0x0000000000000000
+		SQLSMALLINT                  0 
+		SQLSMALLINT *       0x0000000000000000
+		SQLPOINTER          [Unknown attribute 1006]
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLSetStmtAttrW 
+		SQLHSTMT            0x00000271965DA4A0
+		SQLINTEGER                   9 <SQL_ROWSET_SIZE>
+		SQLPOINTER             10000
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLSetStmtAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHSTMT            0x00000271965DA4A0
+		SQLINTEGER                   9 <SQL_ROWSET_SIZE>
+		SQLPOINTER             10000
+		SQLINTEGER                   0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        1 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x000002719951B6A0
+		SQLLEN                     1
+		SQLLEN *            0x000002719953F300
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        1 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x000002719951B6A0
+		SQLLEN                     1
+		SQLLEN *            0x000002719953F300 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        2 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271994DE190
+		SQLLEN                     1
+		SQLLEN *            0x0000027199552B90
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        2 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271994DE190
+		SQLLEN                     1
+		SQLLEN *            0x0000027199552B90 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        3 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x0000027199566420
+		SQLLEN                     1
+		SQLLEN *            0x0000027199568B40
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        3 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x0000027199566420
+		SQLLEN                     1
+		SQLLEN *            0x0000027199568B40 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        4 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x000002719957C3D0
+		SQLLEN                     1
+		SQLLEN *            0x000002719957EAF0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        4 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x000002719957C3D0
+		SQLLEN                     1
+		SQLLEN *            0x000002719957EAF0 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        5 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x0000027199593820
+		SQLLEN                     1
+		SQLLEN *            0x0000027199595F40
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        5 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x0000027199593820
+		SQLLEN                     1
+		SQLLEN *            0x0000027199595F40 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        6 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271995AAC70
+		SQLLEN                     1
+		SQLLEN *            0x00000271995AD390
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        6 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271995AAC70
+		SQLLEN                     1
+		SQLLEN *            0x00000271995AD390 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLBindCol 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        7 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271995C20C0
+		SQLLEN                     1
+		SQLLEN *            0x00000271995C47E0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLBindCol  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        7 
+		SWORD                       -7 <SQL_C_BIT>
+		PTR                0x00000271995C20C0
+		SQLLEN                     1
+		SQLLEN *            0x00000271995C47E0 (2686842962256)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLExecute 
+		HSTMT               0x00000271965DA4A0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLExecute  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLExtendedFetch 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        1 <SQL_FETCH_NEXT>
+		SQLLEN                     1
+		SQLULEN *           0x00000271994B1AB8
+		UWORD *             0x00000271994D7EC0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLExtendedFetch  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        1 <SQL_FETCH_NEXT>
+		SQLLEN                     1
+		SQLULEN *           0x00000271994B1AB8 (1)
+		UWORD *             0x00000271994D7EC0 (0)
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeStmt 
+		HSTMT               0x00000271965DA4A0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeStmt  with return code 0 (SQL_SUCCESS)
+		HSTMT               0x00000271965DA4A0
+		UWORD                        0 <SQL_CLOSE>
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DA4A0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  3 <SQL_HANDLE_STMT>
+		SQLHANDLE           0x00000271965DA4A0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLEndTran 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLSMALLINT                  0 
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLEndTran  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+		SQLSMALLINT                  0 
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLDisconnect 
+		HDBC                0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLDisconnect  with return code 0 (SQL_SUCCESS)
+		HDBC                0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x00000271965DE8D0
+
+7bc26dbd-b3ea-4 3e90-3698	ENTER SQLFreeHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DCE50
+
+7bc26dbd-b3ea-4 3e90-3698	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x00000271965DCE50
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLAllocHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000017AE11D2F20
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000000000000000
+		SQLHANDLE *         0x0000017AE11D2F20 ( 0x0000017ADE61B8C0)
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLSetEnvAttr 
+		SQLHENV             0x0000017ADE61B8C0
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLSetEnvAttr  with return code 0 (SQL_SUCCESS)
+		SQLHENV             0x0000017ADE61B8C0
+		SQLINTEGER                 200 <SQL_ATTR_ODBC_VERSION>
+		SQLPOINTER                 3 <SQL_OV_ODBC3>
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLAllocHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B8C0
+		SQLHANDLE *         0x0000017AE11D33C0
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLAllocHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B8C0
+		SQLHANDLE *         0x0000017AE11D33C0 ( 0x0000017ADE61B9A0)
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x0000017ADE61B9A0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x0000017ADE61B9A0
+		SQLINTEGER                 103 <SQL_ATTR_LOGIN_TIMEOUT>
+		SQLPOINTER                60
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLSetConnectAttrW 
+		SQLHDBC             0x0000017ADE61B9A0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLSetConnectAttrW  with return code 0 (SQL_SUCCESS)
+		SQLHDBC             0x0000017ADE61B9A0
+		SQLINTEGER                 101 <SQL_ATTR_ACCESS_MODE>
+		SQLPOINTER                 1 <SQL_MODE_READ_ONLY>
+		SQLINTEGER                   0 
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLDriverConnectW 
+		HDBC                0x0000017ADE61B9A0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLDriverConnectW  with return code -1 (SQL_ERROR)
+		HDBC                0x0000017ADE61B9A0
+		HWND                0x0000000000000000
+		WCHAR *             0x00007FFF80B68420 [      -3] "******\ 0"
+		SWORD                       -3 
+		WCHAR *             0x00007FFF80B68420 
+		SWORD                       -3 
+		SWORD *             0x0000000000000000
+		UWORD                        0 <SQL_DRIVER_NOPROMPT>
+
+		DIAG [HY000] [Redshift][ODBC Driver][Redshift][ODBC Driver][Server]no connection to the server
+ (0) 
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLGetDiagRecW 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+		SQLSMALLINT                  1 
+		SQLWCHAR *          0x00000008DEDFE560
+		SQLINTEGER *        0x00000008DEDFE6D8
+		SQLWCHAR *          0x0000017AE01EAC10 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x00000008DEDFE6C8
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLGetDiagRecW  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+		SQLSMALLINT                  1 
+		SQLWCHAR *          0x00000008DEDFE560 [       5] "HY000"
+		SQLINTEGER *        0x00000008DEDFE6D8 (0)
+		SQLWCHAR *          0x0000017AE01EAC10 [      82] "[Redshift][ODBC Driver][Redshift][ODBC Driver][Server]no connection to the server\ a"
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x00000008DEDFE6C8 (82)
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLGetDiagRecW 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+		SQLSMALLINT                  2 
+		SQLWCHAR *          0x00000008DEDFE560
+		SQLINTEGER *        0x00000008DEDFE6D8
+		SQLWCHAR *          0x0000017AE01EC440 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x00000008DEDFE6C8
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLGetDiagRecW  with return code 100 (SQL_NO_DATA_FOUND)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+		SQLSMALLINT                  2 
+		SQLWCHAR *          0x00000008DEDFE560
+		SQLINTEGER *        0x00000008DEDFE6D8
+		SQLWCHAR *          0x0000017AE01EC440 
+		SQLSMALLINT               1023 
+		SQLSMALLINT *       0x00000008DEDFE6C8
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLFreeHandle 
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  2 <SQL_HANDLE_DBC>
+		SQLHANDLE           0x0000017ADE61B9A0
+
+47789c39-9c98-4 3ad0-2120	ENTER SQLFreeHandle 
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000017ADE61B8C0
+
+47789c39-9c98-4 3ad0-2120	EXIT  SQLFreeHandle  with return code 0 (SQL_SUCCESS)
+		SQLSMALLINT                  1 <SQL_HANDLE_ENV>
+		SQLHANDLE           0x0000017ADE61B8C0
