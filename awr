@@ -1,29 +1,55 @@
+SQL_ID  4qtj5pay2pa1c, child number 0
+-------------------------------------
+SELECT       TRADE_ID,      POSTING_ID,      POSTING_EVENT,
+LEG_DIRECTION,      BACAHN_CCY,      POSTING_TYPE,
+POSTING_EVENT_RANK,      POSTING_EVENT_RANK_MIN,      POSTING_ACC_FULL,
+PRODUCT_ID ,      TRADE_BOOK ,      COUNTERPARTY_SHORT_NAME  ,
+LIQ_CUST,      HESH_PISGA,      SEIF_MAZANI,      TZAD_MAAZAN,
+SUG_HESHBON,      DEGEM,      MIGZAR_HAZMADA,      SEFER_RASHI,
+BOOK_ATTR_LEVEL_5,      COUNTERPARTY_ACCOUNT_MATI,
+COUNTERPARTY_ACCOUNT_MATACH,      TRADE_PRODUCT_TYPE,      1 AS RN FROM
+( SELECT /*+parallel(p ,5)*/      P.TRADE_ID,      P.POSTING_ID,
+P.POSTING_EVENT,      SUBSTR(P.TRADE_LEG_NUM, 1, 1) AS LEG_DIRECTION,
+SUBSTR(P.POSTING_CCY_CODE, 1,4) AS BACAHN_CCY,       CASE       WHEN
+INSTR(P.POSTING_ACC_FULL, 'Contra') > 0      THEN 'Contra' ELSE
+'Contingent' END AS POSTING_TYPE,      CASE     WHEN P.POSTING_EVENT =
+'NOM_SD' THEN 1     WHEN P.POSTING_EVENT = 'NOM_TD' THEN 2     WHEN
+P.POSTING_EVENT = 'COT' THEN 3     END POSTING_EVENT
 
-4qtj5pay2pa1c	1	1325800	2597132	1422	1422.027
-30p3mh3brvpt9	1	23994	16239	27.6	27.636
-b9p45hkcx0pwh	1	97824	8558	16.4	16.426
-20x4skzx6dbjm	1	41559	220	12.7	12.656
-1j6tnz8fcm4c3	1	66515	66331	9.9	9.908
-1jb0rx0tq963n	2	107011	51729	9.5	4.744
-gqah5jpyv3cns	1	10042	4280	6.6	6.593
-8vgz0m72d5sp9	1	1870082	1694	4.6	4.604
-fhf8upax5cxsz	5	31608	1270	4.3	0.862
-5ca3fp27s4tny	1	35687	8098	3.4	3.425
-0w26sk6t6gq98	5	21890	577	3.4	0.682
-1nb2yz417amny	1	5608	2212	3.1	3.106
-8n5pqrwhcu4x1	2	5428	2062	2.9	1.452
-0za9fv0j1vgkk	5	17608	311	2.8	0.569
-4zr474h0u8m4v	2	2597	62	2.3	1.17
+Plan hash value: 202310974
+
+---------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name                      | E-Rows |  OMem |  1Mem | Used-Mem |
+---------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |                           |        |       |       |          |
+|*  1 |  VIEW                                 |                           |  28037 |       |       |          |
+|   2 |   WINDOW BUFFER                       |                           |  28037 |  7576K|  1092K|          |
+|   3 |    NESTED LOOPS                       |                           |  28037 |       |       |          |
+|   4 |     NESTED LOOPS                      |                           |    442K|       |       |          |
+|   5 |      SORT UNIQUE                      |                           |  16406 |   478K|   478K|  424K (0)|
+|   6 |       TABLE ACCESS FULL               | MRR_BACHAN_IRD_INTERFACES |  16406 |       |       |          |
+|*  7 |      INDEX RANGE SCAN                 | TRADE_ID_MD_POSTING       |     54 |       |       |          |
+|*  8 |     TABLE ACCESS BY GLOBAL INDEX ROWID| INTERFACES_MD_POSTING     |      3 |       |       |          |
+---------------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+1 - filter("POSTING_EVENT_RANK"="POSTING_EVENT_RANK_MIN")
+7 - access("M"."TRADE_ID"="P"."TRADE_ID")
+8 - filter(("P"."BACHAN_RB_MZ"='MZ' AND "P"."POSTING_TYPE"='NEW' AND
+INTERNAL_FUNCTION("P"."POSTING_EVENT") AND "P"."KOD_TZEL"='BACHAN' AND
+"P"."POSTING_EFF_DATE"<=TO_DATE('310526','DDMMYY')))
+
+Note
+-----
+- dynamic statistics used: dynamic sampling (level=8)
+- Warning: basic plan statistics not available. These are only collected when:
+* hint 'gather_plan_statistics' is used for the statement or
 
 
-User I/O	1443.8
-Other	33.9
-System I/O	18.4
-Concurrency	0.5
-Commit	0.1
-Network	0
-Application	0
-Administrative	0
 
 
 
+202310974	1	689.7	226049
+* parameter 'statistics_level' is set to 'ALL', at session or system level
