@@ -1,20 +1,47 @@
-SELECT count(*) "count"             from ODS_IKULIM.MFTBYK#_FCVW#DIG a          	119900	258386
-DELETE FROM "SOR_CURRENT_ACCOUNT"."LOTBLO#_TNUOT_HAYOM_MV" SNAP$ WHERE ("LO#_CHN	9967	9965
-SELECT                 to_char (MFKF#_TA_IBUD , 'YYYYMMDD') "transactionprocessi	5359	6069
-SELECT                                                                       	3145	9104
-/* MV_REFRESH (MRG) */ MERGE INTO "SOR_CURRENT_ACCOUNT"."LOTBLO#_TNUOT_HAYOM_MV"	1653	1653
-select substrb(dump(val,#,#,#),#,#) ep, cnt from (select /*+ no_expand_table(t) 	1140	4858
-LOCK TABLE "SYS"."ORA_TEMP_#_DS_#" IN EXCLUSIVE MODE  NOWAIT 	1039	4471
-select *             from         (         WITH ne_and_date AS (      	905	17505
-select /*+ opt_param('_optimizer_use_auto_indexes' 'on')   parallel_index(t, "JO	686	2634
-Insert INTO "LFPM_TNUOT_HAYOM_PMOL_TNUOT" ("ISN", "PMOL_TNUOT_INDEX", "ISN_PMOL_	442	442
-select              a.yk#_kod_eretz "countryCode",             a.yk#_kod_zehut 	434	838
-select /*+  no_parallel(t) no_parallel_index(t) dbms_stats cursor_sharing_exact 	402	773
-select * from  (     select *      from     ( select      lpad(jotbmf#_mati_isky	379	137447
-insert /*+ append */ into sys.ora_temp_#_ds_# SELECT /*+  parallel(t,#) parallel	304	498
-Insert INTO "LFPM_TNUOT_HAYOM" ("ISN", "BANK", "BRANCH", "ACCOUNT", "ACCOUNT_TYP	265	265
-Select * FROM "LFPM_TNUOT_HAYOM_PMOL_TNUOT" WHERE "ISN" = # AND "PMOL_TNUOT_INDE	232	2095
-SELECT CASE WHEN ODS_DATA_AGE_CDC IS NULL THEN # ELSE ODS_DATA_AGE_CDC END ODS_D	227	9103
-SELECT CASE WHEN ORA_VALIDATION = 'Not relevant' THEN '#' ELSE ORA_VALIDATION EN	177	48380
-select round(used_percent) from dba_tablespace_usage_metrics where tablespace_na	168	22840
-select * from  (     select *      from     ( select      lpad(jotbmf#_tn_mati.j	157	977079
+55gw8h80hs001	ODS_IKULIM	MAOF-MS		1
+834jznj1b8003	ODS_IKULIM	MAOF-MS		3
+g35dn1x66h003	ODS_IKULIM	MAOF-MS		1
+9xcuqdysqh005	ODS_IKULIM	MAOF-MS		8
+1rdcg7s6dc005	ODS_IKULIM	MAOF-MS		2
+djznvv8qnc006	ODS_IKULIM	MAOF-MS		2
+d9xczv5zwc00d	ODS_IKULIM	MAOF-MS		1
+5h6kqj0g5n00f	ODS_IKULIM	MAOF-MS		2
+0uvpchkpcw00n	ODS_IKULIM	MAOF-MS		5
+cuuxu06wn000s	ODS_IKULIM	MAOF-MS		3
+b2zp1fuh4h00w	ODS_IKULIM	MAOF-MS		1
+8p90dzgvr000w	ODS_IKULIM	MAOF-MS		2
+6wxr61cmfc00x	ODS_IKULIM	MAOF-MS		7
+31wndw9wr8010	ODS_IKULIM	MAOF-MS		1
+4st4qawxs8013	ODS_IKULIM	MAOF-MS		2
+bh2v4ftu5w014	ODS_IKULIM	MAOF-MS		1
+f0h8gha334016	ODS_IKULIM	MAOF-MS		2
+c1p0j4rzpw016	ODS_IKULIM	MAOF-MS		1
+33sstc07sw016	ODS_IKULIM	MAOF-MS		1
+0bh0arcvgw01b	ODS_IKULIM	MAOF-MS		1
+
+
+
+2	ODS_IKULIM	MAOF-MS	72098	158878
+1	ODS_IKULIM	MAOF-MS	49260	106049
+2	SOR_CURRENT_ACCOUNT		11705	263497
+2	ODS_CURRENT_ACCOUNT	MAOF-MS	4174	4764
+1	ODS_CURRENT_ACCOUNT	debit-authorization	2018	7224
+1	SOR_CURRENT_ACCOUNT	JDBC Thin Client	1851	2990634
+1	ODS_INF	JDBC Thin Client	1353	30652
+2	ODS_INF	JDBC Thin Client	1192	66009
+2	ODS_CURRENT_ACCOUNT	debit-authorization	1181	2114
+1	ODS_CURRENT_ACCOUNT	MAOF-MS	1110	1248
+2	ODS_MIFNE	security-index	813	17025
+2	ODS_CURRENT_ACCOUNT	business_services_ods	359	2115548
+2	ODS_LEV	JarLauncher	346	132876976
+1	ODS_CURRENT_ACCOUNT	business_services_ods	312	3053235
+1	ODS_LEV	JarLauncher	290	136100090
+1	SOR_LEV	JDBC Thin Client	280	859
+1	SOR_COMMISSIONS	JDBC Thin Client	212	747
+1	ODS	JDBC Thin Client	205	1556
+2	ODS_DEPOSITS	Deposits-Services	123	58400730
+1	ODS_DEPOSITS	Deposits-Services	118	50114228
+
+
+
+
