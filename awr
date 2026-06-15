@@ -1,2 +1,90 @@
-0	202310974	1	1747.5	3612829	1846619	3612829
+-bash-5.2$ cat /oracle/app/oracle/diag/rdbms/shinavc/shinavc/trace/shinavc_mmon_31064414.trc
+Trace file /oracle/app/oracle/diag/rdbms/shinavc/shinavc/trace/shinavc_mmon_31064414.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.17.0.0.0
+Build label:    RDBMS_19.17.0.0.0DBRU_AIX.PPC64_220924
+ORACLE_HOME:    /oracle/app/oracle/product/19.3
+System name:    AIX
+Node name:      unix107777a19
+Release:        3
+Version:        7
+Machine:        00C675904B00
+Instance name: shinavc
+Redo thread mounted by this instance: 1
+Oracle process number: 34
+Unix process pid: 31064414, image: oracle@unix107777a19 (MMON)
+
+
+*** 2026-06-15T01:53:46.667098+03:00
+*** SESSION ID:(579.13593) 2026-06-15T01:53:46.667128+03:00
+*** CLIENT ID:() 2026-06-15T01:53:46.667136+03:00
+*** SERVICE NAME:(SYS$BACKGROUND) 2026-06-15T01:53:46.667143+03:00
+*** MODULE NAME:() 2026-06-15T01:53:46.667151+03:00
+*** ACTION NAME:() 2026-06-15T01:53:46.667157+03:00
+*** CLIENT DRIVER:() 2026-06-15T01:53:46.667164+03:00
+
+*** KEUUXS - encountered error: (ORA-00942: table or view does not exist
+)
+  *** SQLSTR: total-len=46, dump-len=46,
+      SQLSTR={delete from WRHS$_STAT_NAME where dbid = :dbid}
+*** kewrwdbi_1: Error=13509 encountered during run_once
+
+*** 2026-06-15T01:53:47.054784+03:00
+QPI: Obtaining lock SUCCESSFUL, qp_result=0 at : 15-JUN-26 01.53.47.045467000 AM +03:00
+QPI: Got lock get_opatch_lsinventory
+QPI: In opatch_run_job
+QPI: In sanity check..
+QPI:  t_root is /oracle/app/oracle/product/19.3/
+QPI:  t_orabase is /oracle/app/oracle/product/19.3/
+QPI:  t_op_inst_path is /oracle/app/oracle/product/19.3/OPatch/
+QPI:  t_op_scpt_path is /oracle/app/oracle/product/19.3/QOpatch/
+QPI:  t_op_log_path is /oracle/app/oracle/product/19.3/rdbms/log/
+QPI: op_scpt_path :/oracle/app/oracle/product/19.3/QOpatchpos1
+QPI: opatch file present, opatch
+QPI: qopiprep.bat file present
+QPI: In opatch_inv_refresh_job
+QPI: In REFRESH_OPATCH_DATA
+KUDM: kudmcxgda entry.
+KUDM: kudmcxgda entry.
+KUDM: kudmcxgda entry.
+KUDM: kudmcxgda entry.
+
+*** 2026-06-15T01:54:00.268115+03:00
+QPI: Caught error while querying opatch_xml_inv
+QPI: in REFRESH_OPATCH_DATA, ERROR code -29913 : ORA-29913: error in executing ODCIEXTTABLEFETCH callout
+ORA-29400: data cartridge error
+KUP-04020: found record longer than buff
+QPI: Releasing lock SUCCESSFUL, qp_result=0 at : 15-JUN-26 01.54.00.268616000 AM +03:00
+QPI: Releasing lock FAILED, qp_result=4 at : 15-JUN-26 01.54.00.268802000 AM +03:00
+QPI: in get_opatch_lsinventory, ERROR code -20001 : ORA-20001: Latest xml inventory is not loaded into table
+QPI: Releasing lock FAILED, qp_result=4 at : 15-JUN-26 01.54.00.268878000 AM +03:00
+Error in dbkgcroa_run_once_action-8: 20001, ORA-20001: Latest xml inventory is not loaded into table
+ORA-06512: at "SYS.DBMS_QOPATCH", line 2327
+ORA-06512: at "SYS.DBMS_QOPATCH", line 854
+ORA-06512: at "SYS.DBMS_QOPATCH", line 937
+ORA-06510: PL/SQL: unhandled user-defined exception
+ORA-06512: at "SYS.DBMS_QOPATCH", line 932
+ORA-29913: error in executing ODCIEXTTABLEFETCH callout
+ORA-29400: data cartridge error
+KUP-04020: found record longer than buffer size supported, 8388608, in /oracle/app/oracle/product/19.3/QOpatch/qopiprep.bat (offset=0)
+ORA-06512: at "SYS.DBMS_QOPATCH", line 919
+ORA-06512: at "SYS.DBMS_QOPATCH", line 2286
+ORA-06512: at "SYS.DBMS_QOPATCH", line 817
+ORA-06512: at "SYS.DBMS_QOPATCH", line 2309
+
+*** 2026-06-15T01:54:00.996933+03:00
+2026-06-15T01:54:00.996899+03:00
+Incident 63374810 created, dump file: /oracle/app/oracle/diag/rdbms/shinavc/shinavc/incident/incdir_63374810/shinavc_mmon_31064414_i63374810.trc
+ORA-00600: internal error code, arguments: [kkpogppi1], [], [], [], [], [], [], [], [], [], [], []
+
+*** kewrwdbi_1: Error=600 encountered during run_once
+*** KEWROI_1: Error=600 encountered by KEW Run Once Action 0.
+kge_experr : Found error ORA-600 not in expected list.
+kge_experr: Dumping error frames [top = 1 : barrier top = 0]
+kge_experr : [0] : Error = ORA-600 : Call stack =   ksedsts()+512<-ksf_short_stack_flags()+112<-kge_snap_callstack()+96<-kgeadse()+344<-kgerinv_internal()+52<-kgerinv()+52<-kgeasnmierr()+72<-kkpogppi_get_pruned_part_info()+512<-IPRA.$kewrgpil_get_pinfo_list()+232<-IPRA.$kewrcfp_create_first_partition()+31
+kge_experr: Dumping error frames - done
+error 600 detected in background process
+OPIRIP: Uncaught error 447. Error stack:
+ORA-00447: fatal error in background process
+ORA-00600: internal error code, arguments: [kkpogppi1], [], [], [], [], [], [], [], [], [], [], []
 
