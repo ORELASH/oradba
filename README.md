@@ -1,531 +1,174 @@
-# oradba - Comprehensive Database Administration Toolkit
+# Bank Manager Queries — Source Tables & Output Spec
 
-[![Platform](https://img.shields.io/badge/platform-AIX%20%7C%20Linux-blue)](https://github.com/ORELASH/oradba)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Shell](https://img.shields.io/badge/shell-bash-yellow)](https://www.gnu.org/software/bash/)
+## Overview
 
-A comprehensive, portable toolkit for Oracle database administrators, network engineers, and system administrators. Designed to work seamlessly on both **AIX** and **Linux** platforms.
+Two API queries that serve the Bank Manager (BM) application:
+1. **Detailed Deposit Accounts** — denormalized view of all deposit accounts (44 columns)
+2. **Detailed Deposit Transactions** — transactions joined with account context (39 columns)
 
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Platform Support](#platform-support)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Compatibility](#compatibility)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
+Currently implemented as Postgres functions (`dwh.bm_get_all_detailed_deposit_accounts()`, `dwh.bm_get_all_detailed_deposit_transactions()`) that run twice daily via double-buffering into staging tables.
 
 ---
 
-## 🎯 Overview
+## 1. Detailed Deposit Accounts
 
-**oradba** is a collection of battle-tested tools for:
+### Source Tables
 
-- **Oracle Database Administration** - Comprehensive diagnostics and monitoring
-- **Network Performance Testing** - Latency and jitter measurement tools
-- **Redshift Management** - Amazon Redshift administration utilities
-- **System Monitoring** - Cross-platform system metrics collection
-- **Security Scanning** - Automated Oracle security audits
+| Source Table | Schema | Purpose |
+|-------------|--------|---------|
+| `deposit.v_deposit_account_detail` | deposit | Main account view (joins deposit_account + params + computed_params + evaluation) |
+| `product.proposal` | product | Proposal reference, name, version |
+| `product.template` | product | Template ID (product type) |
+| `applicative.financial_request` | applicative | Channel, method, banker info (for OPEN requests) |
+| `applicative.channel` | applicative | Channel name lookup |
+| `deposit.v_deposit_account_detail_evaluation` | deposit | Premature balance calculations |
+| `migration.migrated_accounts` | migration | Legacy migration date |
 
-All tools are designed with **portability** in mind, ensuring consistent behavior across AIX and Linux environments.
+### Output Columns (44)
 
----
+| # | Column | Type | Source | Description |
+|---|--------|------|--------|-------------|
+| 1 | tm_account_id | UUID | deposit_account_detail | Unique account identifier |
+| 2 | branch_number | CHAR(4) | customer_id substring(1,3) | Branch code |
+| 3 | account_type | CHAR(4) | linked_account_id substring(5,3) | Account type code |
+| 4 | account_number | TEXT | linked_account_id substring(9+) | Account number |
+| 5 | customer_id | TEXT | deposit_account_detail | Full customer ID |
+| 6 | proposal_number | TEXT | proposal.reference | Proposal reference |
+| 7 | deposit_serial_number | TEXT | deposit_account_detail.account_serial | Serial number |
+| 8 | proposal_name | TEXT | proposal.name->>'he' | Hebrew proposal name |
+| 9 | opened_value_date | DATE | deposit_account_detail | Opening date |
+| 10 | created_at | TIMESTAMPTZ | deposit_account_detail | Creation timestamp |
+| 11 | maturity_date | DATE | deposit_account_detail | Maturity date |
+| 12 | deposit_period | TEXT | deposit_account_detail.period_override | Period term |
+| 13 | booked_principal_balance | NUMERIC(15,2) | deposit_account_detail | Principal balance |
+| 14 | initial_balance | NUMERIC(15,2) | deposit_account_detail | Initial deposit amount |
+| 15 | interests_periods_rates | TEXT | period_term JSON (aggregated) | Pipe-delimited rates per period |
+| 16 | total_benefit_rate | TEXT | financial_request pricing JSON | Pipe-delimited benefit rates |
+| 17 | booked_total_balance | NUMERIC(15,2) | deposit_account_detail | Total balance (principal + interest) |
+| 18 | total_balance_maturity_adjusted | NUMERIC(15,2) | deposit_account_detail | Maturity-adjusted balance |
+| 19 | total_balance_at_maturity | NUMERIC(15,2) | deposit_account_detail | Expected balance at maturity |
+| 20 | total_balance_at_next_exit_point | NUMERIC(15,2) | deposit_account_detail | Balance at next exit |
+| 21 | total_balance_at_premature | NUMERIC(15,2) | evaluation | Balance if broken early |
+| 22 | principal_balance_at_premature | NUMERIC(15,2) | evaluation | Principal if broken early |
+| 23 | interest_balance_at_premature | TEXT | evaluation | Interest if broken early |
+| 24 | tax_and_penalty_at_premature | NUMERIC(15,2) | evaluation (tax + penalty) | Tax + penalty for early break |
+| 25 | channel | TEXT | channel.channel_name | Opening channel name |
+| 26 | method | TEXT | financial_request.initiation_method | Initiation method |
+| 27 | is_lien | BOOLEAN | deposit_account_detail | Lien flag |
+| 28 | is_foreclosed | BOOLEAN | deposit_account_detail | Foreclosure flag |
+| 29 | interest_type | TEXT | deposit_account_detail | Fixed/variable |
+| 30 | funds_transfer_price_rate | TEXT | period_term JSON (aggregated) | FTP rate per period |
+| 31 | margin_rate | TEXT | period_term JSON (aggregated) | Margin rate per period |
+| 32 | template_id | TEXT | template.id | Product template ID |
+| 33 | banker_branch_code | TEXT | financial_request | Banker's branch |
+| 34 | banker_id | TEXT | financial_request | Banker ID |
+| 35 | next_exit_point | DATE | deposit_account_detail | Next exit date |
+| 36 | deposit_status | TEXT | deposit_account_detail.status | Account status |
+| 37 | allowed_currency | CHAR(4) | deposit_account_detail.currency | Currency (ILS/USD/EUR) |
+| 38 | orig_tm_account_id | TEXT | self-join on orig_tm_account_id | Original account (for renewals) |
+| 39 | orig_deposit_serial_number | TEXT | self-join | Original serial |
+| 40 | orig_proposal_number | TEXT | self-join | Original proposal |
+| 41 | migration_date | TIMESTAMPTZ | migrated_accounts | Legacy system migration date |
 
-## ✨ Features
+### Filter/Join Logic
 
-### 🗄️ Oracle DBA Tools
-- ✅ **Automated Instance Discovery** - Find and manage all Oracle instances
-- ✅ **System Diagnostics** - CPU, memory, disk, and network metrics
-- ✅ **RAC Support** - Interconnect latency testing and cluster diagnostics
-- ✅ **Performance Analysis** - Session statistics, blocking detection, long-running queries
-- ✅ **Security Scanning** - Comprehensive security audit with HTML reports
-- ✅ **Alert Log Analysis** - Automated error detection and categorization
-- ✅ **PDB Management** - Oracle 12c+ Pluggable Database support
-- ✅ **Virtualization Detection** - VMware, PowerVM, LPAR support
-
-### 🌐 Network Tools
-- ✅ **Latency Measurement** - TCP round-trip time testing
-- ✅ **Jitter Analysis** - Network stability monitoring
-- ✅ **Server/Client Modes** - Flexible testing configurations
-- ✅ **Cross-Platform** - C, C++, Java, and Shell implementations
-
-### 🚀 Redshift Tools
-- ✅ **Auto Project Builder** - Python-based project generation
-- ✅ **Connection Management** - ODBC configuration utilities
-- ✅ **Application Templates** - Complete Redshift app scaffolding
-
-### 🔧 System Utilities
-- ✅ **Disk Monitoring** - I/O performance tracking
-- ✅ **AIX vmstat Wrapper** - Enhanced metrics collection
-- ✅ **Cross-Platform Scripts** - POSIX-compliant wherever possible
-
----
-
-## 🖥️ Platform Support
-
-| Platform | Version | Status | Notes |
-|----------|---------|--------|-------|
-| **Linux** | RHEL 7+, Ubuntu 18.04+ | ✅ Fully Supported | All features available |
-| **AIX** | 7.1, 7.2, 7.3 | ✅ Fully Supported | Tested on Power systems |
-| **macOS** | 10.15+ | ⚠️ Partial | Oracle tools require Oracle installation |
-| **Windows** | WSL2 | ⚠️ Limited | Via Windows Subsystem for Linux |
-
-### Compatibility Matrix
-
-| Tool | AIX | Linux | macOS | Windows/WSL |
-|------|-----|-------|-------|-------------|
-| Oracle DBA Tools | ✅ | ✅ | ⚠️ | ⚠️ |
-| Network Tools | ✅ | ✅ | ✅ | ✅ |
-| Redshift Tools | ✅ | ✅ | ✅ | ✅ |
-| System Utilities | ✅ | ✅ | ⚠️ | ❌ |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-**All Platforms:**
-- Bash 4.0+
-- Standard UNIX utilities (awk, sed, grep)
-
-**For Oracle Tools:**
-- Oracle Database 11g+ or Oracle Client
-- sqlplus in PATH
-- Running as `oracle` user (or user with Oracle environment)
-
-**For Network Tools:**
-- GCC or compatible C compiler (for building from source)
-- Make
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ORELASH/oradba.git
-cd oradba
-
-# Make scripts executable
-chmod +x oracle/*.sh
-chmod +x network/*.sh
-chmod +x *.sh
-
-# Check compatibility
-./check_compatibility.sh
-
-# (Optional) Fix any compatibility issues
-./fix_compatibility.sh
-```
-
-### Quick Test
-
-```bash
-# Test Oracle DBA tools
-cd oracle
-./ora_dba.sh
-
-# Test network latency tool
-cd ../network
-./improved-latency-tool.sh
-make
-./latency_tool
-```
+- Only accounts from `v_deposit_account_detail` (active view)
+- INNER JOIN to `proposal` (every account has a proposal)
+- INNER JOIN to `template` (matched by proposal.template_id + version)
+- LEFT JOIN to `financial_request` where type='OPEN' AND status='committed'
+- LEFT JOIN to `channel` by channel number
+- LEFT JOIN to `evaluation` for premature calculations
+- LEFT JOIN to `migrated_accounts` for legacy data
+- Period rates extracted from JSONB array (`period_term`) via `JSONB_ARRAY_ELEMENTS`
+- Benefit rates from `financial_request.data->'pricing'->'amounts'->0->'periods'` JSONB
 
 ---
 
-## 📂 Project Structure
+## 2. Detailed Deposit Transactions
 
-```
-oradba/
-├── README.md                           # This file
-├── check_compatibility.sh              # Platform compatibility checker
-├── fix_compatibility.sh                # Automated compatibility fixer
-│
-├── oracle/                             # Oracle DBA Tools
-│   ├── README.md                       # Oracle tools documentation
-│   ├── ora_dba.sh                      # Main menu (interactive)
-│   ├── ora_common.sh                   # Common functions
-│   ├── ora_system.sh                   # System diagnostics
-│   ├── ora_instance.sh                 # Instance management
-│   ├── ora_alerts.sh                   # Alert log analysis
-│   ├── ora_params.sh                   # Parameter analysis
-│   ├── ora_rac.sh                      # RAC diagnostics
-│   ├── ora_sessions.sh                 # Session/lock analysis
-│   ├── ora_virt.sh                     # Virtualization detection
-│   └── oracle-security-scan.sh         # Security audit tool
-│
-├── network/                            # Network Performance Tools
-│   ├── README.md                       # Network tools documentation
-│   ├── latency_tool.cpp                # C++ latency tool
-│   ├── combined-latency-jitter.c       # Advanced C implementation
-│   ├── improved-latency-tool.sh        # Build script
-│   ├── aix-network-latency-tool.java.txt  # Java version for AIX
-│   ├── prox.java                       # Proxy utility
-│   ├── test.c                          # Test program
-│   └── Makefile                        # Build configuration
-│
-├── python/                             # Python Utilities
-│   ├── README.md                       # Python tools documentation
-│   ├── auto_project_builder.py         # Redshift project builder
-│   ├── laun.py                         # Launch utility
-│   ├── main.py, main2.py               # Main applications
-│   ├── f4.py, hello.py, pydt.py        # Utilities
-│   └── config.py, conid.py             # Configuration
-│
-├── redshift/                           # Amazon Redshift Tools
-│   ├── README.md                       # Redshift tools documentation
-│   ├── complete_redshift_app.md        # Complete app guide
-│   ├── rsodbc                          # ODBC utilities
-│   └── rst                             # Redshift tools
-│
-├── docs/                               # Documentation
-│   ├── oracle_monitoring_guide.md      # Oracle monitoring guide (30KB)
-│   ├── cloudera-metrics-guide.md       # Cloudera metrics guide
-│   └── ora_readme.md                   # Original Oracle docs
-│
-├── misc/                               # Miscellaneous Utilities
-│   ├── diskmon.sh                      # Disk monitoring
-│   ├── aixVmstat.sh                    # AIX vmstat wrapper
-│   ├── fix.sh                          # Fix utility
-│   ├── wake.cs                         # Wake-on-LAN (C#)
-│   ├── ora.CS                          # Oracle C# interface
-│   └── [various utilities]             # Additional tools
-│
-└── tests/                              # Test Suite (future)
-    └── [test files]
-```
+### Source Tables
 
----
+| Source Table | Schema | Purpose |
+|-------------|--------|---------|
+| `deposit.v_deposit_transaction_detail` | deposit | Transaction view (joins deposit_transaction + details) |
+| `dwh.bm_deposit_accounts_staging` | dwh | Pre-computed accounts staging (from query #1) |
 
-## 📦 Installation
+### Output Columns (39)
 
-### Method 1: Clone and Run (Recommended)
+| # | Column | Type | Source | Description |
+|---|--------|------|--------|-------------|
+| 1 | tm_account_id | UUID | accounts staging | Account ID |
+| 2 | transaction_id | UUID | transaction.batch_transaction_id | Transaction ID |
+| 3 | total_amount | NUMERIC(15,2) | transaction | Total transaction amount |
+| 4 | tax_amount | NUMERIC(15,2) | withdrawal_report->>'tax' | Tax portion |
+| 5 | penalty_amount | NUMERIC(15,2) | withdrawal_report->>'penalty' | Penalty portion |
+| 6 | interest | NUMERIC(15,2) | withdrawal_report->>'interest' | Interest portion |
+| 7 | principal | NUMERIC(15,2) | withdrawal_report->>'principal' | Principal portion |
+| 8 | total_revenue | NUMERIC(15,2) | withdrawal_report->>'total_revenue' | Revenue portion |
+| 9 | total_remaining_principal | NUMERIC(15,2) | withdrawal_report->>'total_remaining_principal' | Remaining after transaction |
+| 10 | opened_value_date | DATE | accounts staging | Account opening date |
+| 11 | value_date | DATE | transaction | Transaction value date |
+| 12 | booking_date | DATE | transaction | Transaction booking date |
+| 13 | maturity_date | DATE | accounts staging | Account maturity |
+| 14 | reference_number | INTEGER | transaction | Reference number |
+| 15 | account_type | CHAR(4) | accounts staging | Account type code |
+| 16 | branch_number | CHAR(4) | accounts staging | Branch code |
+| 17 | allowed_currency | CHAR(4) | accounts staging | Currency |
+| 18 | banker_branch_code | CHAR(4) | transaction | Banker's branch |
+| 19 | customer_id | TEXT | accounts staging | Customer ID |
+| 20 | account_number | TEXT | accounts staging | Account number |
+| 21 | deposit_status | TEXT | accounts staging | Account status |
+| 22 | transaction_code_domain | TEXT | transaction_code JSON->>'domain' | ISO20022 domain |
+| 23 | transaction_code_family | TEXT | transaction_code JSON->>'family' | ISO20022 family |
+| 24 | transaction_code_subfamily | TEXT | transaction_code JSON->>'subfamily' | ISO20022 subfamily |
+| 25 | transaction_type | TEXT | transaction | Transaction type |
+| 26 | transaction_status | TEXT | transaction.status | Transaction status |
+| 27 | channel | TEXT | transaction | Channel used |
+| 28 | initiator | TEXT | transaction | Who initiated |
+| 29 | performer | TEXT | transaction | Who performed |
+| 30 | initiation_method | TEXT | transaction | Method (online/branch) |
+| 31 | banker_id | TEXT | transaction | Banker ID |
+| 32 | phase | TEXT | transaction | Transaction phase |
+| 33 | currency | TEXT | transaction | Transaction currency |
+| 34 | user_id | TEXT | transaction | User ID |
+| 35 | created_at | TIMESTAMPTZ | transaction | Transaction creation time |
+| 36 | is_reversal | BOOLEAN | transaction | Reversal flag |
+| 37 | margin_rate | TEXT | accounts staging | Margin rate (from account) |
+| 38 | proposal_number | TEXT | accounts staging | Proposal reference |
+| 39 | deposit_serial_number | TEXT | accounts staging | Deposit serial |
 
-```bash
-git clone https://github.com/ORELASH/oradba.git
-cd oradba
-chmod +x oracle/*.sh network/*.sh *.sh
-```
+### Filter/Join Logic
 
-### Method 2: Download Release
-
-```bash
-# Download latest release
-wget https://github.com/ORELASH/oradba/archive/refs/heads/main.zip
-unzip main.zip
-cd oradba-main
-chmod +x oracle/*.sh network/*.sh *.sh
-```
-
-### Method 3: Copy to Target System
-
-```bash
-# From your workstation
-tar czf oradba.tar.gz oradba/
-scp oradba.tar.gz oracle@target-server:/tmp/
-
-# On target server (AIX or Linux)
-cd /tmp
-tar xzf oradba.tar.gz
-cd oradba
-chmod +x oracle/*.sh network/*.sh *.sh
-```
+- INNER JOIN transactions to accounts (by tm_account_id)
+- Transactions come from `v_deposit_transaction_detail` (view on deposit_transaction)
+- Account context comes from pre-computed staging (`bm_deposit_accounts_staging`)
+- `withdrawal_report` is a JSONB column on transactions — extracted for tax/penalty/interest breakdown
+- `transaction_code` is a JSONB column — extracted for ISO20022 categorization
+- Ordered by tm_account_id, batch_transaction_id
 
 ---
 
-## 🎮 Usage
+## Key Considerations for Redshift Implementation
 
-### Oracle DBA Tools
+### JSONB Handling
+Both queries rely heavily on Postgres JSONB:
+- `period_term` → array of period objects with rates
+- `financial_request.data` → nested pricing structure
+- `withdrawal_report` → transaction breakdown
+- `transaction_code` → ISO20022 codes
 
-#### Interactive Menu
+Redshift equivalent: `JSON_EXTRACT_PATH_TEXT()` or `SUPER` type.
 
-```bash
-cd oracle
-./ora_dba.sh
-```
+### Aggregation Patterns
+- `STRING_AGG(..., ' | ' ORDER BY ...)` — pipe-delimited multi-period rates
+- `JSONB_ARRAY_ELEMENTS` — explode JSON arrays for aggregation
 
-**Menu Options:**
-1. Full system diagnostic (all checks)
-2. System metrics only (OS and hardware)
-3. Oracle instance diagnostics
-4. RAC/GI diagnostics
-5. Performance diagnostics
-6. Exit
+Redshift equivalent: `LISTAGG()`, `JSON_PARSE()` + `UNNEST`.
 
-#### Run Specific Module
+### Data Volume
+- Accounts: ~26K active accounts (growing)
+- Transactions: ~5M rows
+- Runs twice daily (double-buffered staging tables)
 
-```bash
-# System diagnostics only
-./ora_system.sh
-
-# RAC diagnostics only
-./ora_rac.sh
-
-# Security scan
-./oracle-security-scan.sh
-```
-
-#### Security Scan Options
-
-```bash
-# Auto-detect and scan all instances
-./oracle-security-scan.sh
-
-# Scan specific instance
-./oracle-security-scan.sh -i ORCL -u SYS
-
-# List instances only (no scan)
-./oracle-security-scan.sh -l
-
-# Parallel scanning (max 5)
-./oracle-security-scan.sh -m 5
-```
-
-### Network Tools
-
-#### Build and Run
-
-```bash
-cd network
-
-# Build latency tool
-./improved-latency-tool.sh
-make
-
-# Start server (default port 9876)
-./latency_tool
-
-# Start client
-./latency_tool --client 192.168.1.50
-
-# Custom port
-./latency_tool --port 4444
-./latency_tool --client 192.168.1.50 4444
-```
-
-#### Java Version (AIX)
-
-```bash
-# Compile
-javac aix-network-latency-tool.java
-
-# Run server
-java LatencyTool server 9876
-
-# Run client
-java LatencyTool client 192.168.1.50 9876
-```
-
-### Python Tools
-
-#### Redshift Project Builder
-
-```bash
-cd python
-python3 auto_project_builder.py
-```
-
-This generates a complete Redshift management application with:
-- Flask web interface
-- Database connection management
-- User authentication
-- Query execution
-- Backup/restore functionality
-
----
-
-## ⚙️ Compatibility
-
-### Platform-Specific Notes
-
-#### AIX
-- ✅ All Oracle DBA tools fully supported
-- ✅ Network tools require GCC from AIX Toolbox
-- ⚠️ Some GNU extensions not available (use provided scripts)
-- 💡 Recommendation: Install GNU coreutils for enhanced functionality
-
-#### Linux
-- ✅ All features work out of the box
-- ✅ Tested on RHEL 7/8/9, Ubuntu 18.04/20.04/22.04
-- ✅ Works on x86_64, ARM64, and POWER architectures
-
-### Testing Compatibility
-
-```bash
-# Check all scripts for compatibility issues
-./check_compatibility.sh
-
-# Automatically fix common issues
-./fix_compatibility.sh
-
-# Verify fixes
-./check_compatibility.sh
-```
-
-### Known Limitations
-
-| Issue | Platform | Workaround |
-|-------|----------|------------|
-| `readlink -f` not available | AIX | Use provided `get_script_dir()` function |
-| GNU `stat` format | AIX | Use `ls -l` with `awk` |
-| `seq` command | Some AIX | Use `awk` loop or `jot` |
-| Process substitution `<(...)` | sh | Use bash shebang `#!/bin/bash` |
-
----
-
-## 📖 Documentation
-
-### Comprehensive Guides
-
-- **[Oracle Monitoring Guide](docs/oracle_monitoring_guide.md)** (30KB) - Complete Oracle monitoring reference
-- **[Complete Redshift App](redshift/complete_redshift_app.md)** (60KB) - Full Redshift application tutorial
-- **[Cloudera Metrics Guide](docs/cloudera-metrics-guide.md)** - Cloudera monitoring
-
-### Module-Specific Documentation
-
-- **[Oracle Tools README](oracle/README.md)** - Detailed Oracle DBA tools documentation
-- **[Network Tools README](network/README.md)** - Network performance testing guide
-- **[Python Tools README](python/README.md)** - Python utilities documentation
-- **[Redshift Tools README](redshift/README.md)** - Amazon Redshift tools guide
-
-### Quick Reference
-
-```bash
-# Show help for Oracle DBA tool
-cd oracle && ./ora_dba.sh --help
-
-# Show help for network tool
-cd network && ./latency_tool --help
-
-# Show help for security scan
-cd oracle && ./oracle-security-scan.sh --help
-```
-
----
-
-## 🛠️ Development
-
-### Project Statistics
-
-- **Total Files:** 56
-- **Shell Scripts:** 15 (~4,666 lines)
-- **Python Scripts:** 8
-- **C/C++ Programs:** 3
-- **Documentation:** 6 comprehensive guides
-
-### Coding Standards
-
-- **Shell Scripts:** POSIX-compliant where possible, Bash 4.0+ otherwise
-- **Python:** Python 3.6+ compatible
-- **C/C++:** C99/C++11 standards
-
-### Testing
-
-```bash
-# Run compatibility checks
-./check_compatibility.sh
-
-# Test Oracle tools (requires Oracle environment)
-cd oracle && ./ora_dba.sh
-
-# Build and test network tools
-cd network && ./improved-latency-tool.sh && make && ./latency_tool
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Test on both AIX and Linux if possible
-4. Run `./check_compatibility.sh` before committing
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Contribution Guidelines
-
-- Ensure AIX/Linux compatibility
-- Add tests where applicable
-- Update documentation
-- Follow existing code style
-- Add yourself to CONTRIBUTORS.md
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Credits
-
-**Maintainer:** Orel Ashush ([@ORELASH](https://github.com/ORELASH))
-
-**Contributors:**
-- DBA Team - Original Oracle DBA tools
-- Network Engineering Team - Latency measurement tools
-- Community Contributors - Bug fixes and enhancements
-
----
-
-## 📞 Support
-
-- **Issues:** [GitHub Issues](https://github.com/ORELASH/oradba/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/ORELASH/oradba/discussions)
-- **Email:** [maintainer email]
-
----
-
-## 🔗 Related Projects
-
-- [amazon-redshift-odbc-driver](https://github.com/ORELASH/amazon-redshift-odbc-driver) - Redshift ODBC driver fixes
-- [redshift-guardian-net](https://github.com/ORELASH/redshift-guardian-net) - Redshift permissions scanner
-
----
-
-## 📊 Project Status
-
-| Component | Status | Coverage |
-|-----------|--------|----------|
-| Oracle DBA Tools | ✅ Production Ready | 95% |
-| Network Tools | ✅ Production Ready | 90% |
-| Redshift Tools | ⚠️ Beta | 70% |
-| Python Utilities | ⚠️ Beta | 60% |
-| Documentation | ✅ Complete | 85% |
-
----
-
-## 🗺️ Roadmap
-
-### Version 2.0 (Planned)
-- [ ] Web-based dashboard for Oracle monitoring
-- [ ] Automated alert system
-- [ ] Integration with Grafana/Prometheus
-- [ ] Docker containers for testing
-- [ ] CI/CD pipeline with GitHub Actions
-
-### Version 2.1 (Future)
-- [ ] Kubernetes deployment support
-- [ ] Cloud-native monitoring
-- [ ] Advanced ML-based anomaly detection
-
----
-
-**Last Updated:** February 25, 2026
-**Version:** 1.0.0
-**Status:** Production Ready
-
----
-
-⭐ If you find this project useful, please star it on GitHub!
+### Dependencies Between Queries
+Query #2 (transactions) depends on Query #1 (accounts) — it reads from `bm_deposit_accounts_staging` which is populated by the accounts query. Must run in sequence.
