@@ -30,13 +30,47 @@
 #         following lines = one detail line per instance.
 #
 # Usage:
-#   ./check_mysql_connections.sh [-w 80] [-t 5] [-i <filter>] [-e <cred-file>]
-#                                [-l] [-v] [-h]
+#   ./check_mysql_connections.sh [-w 80] [-t 5] [-i <filter>] [-u user]
+#                                [-e <cred-file>] [-l] [-v] [-h]
 #===============================================================================
 
 set -u
 set -o pipefail
 export LC_ALL=C
+
+###############################################################################
+#                        >>>  CREDENTIALS - EDIT HERE  <<<                    #
+#                                                                             #
+# Leave BOTH empty to use OS-level socket authentication (auth_socket /       #
+# unix_socket) - recommended when the script runs as root or as mysql.        #
+#                                                                             #
+# Otherwise put the monitoring user + password here. The password is never    #
+# passed on the command line: the script writes a private 0600 temp option    #
+# file and removes it on exit, so it never shows up in `ps`.                  #
+#                                                                             #
+# These can also be supplied at runtime, without touching the file, via the   #
+# MYSQL_MON_USER / MYSQL_MON_PASSWORD environment variables or the -u flag.   #
+###############################################################################
+MYSQL_USER="${MYSQL_MON_USER:-}"
+MYSQL_PASSWORD="${MYSQL_MON_PASSWORD:-}"
+
+###############################################################################
+# Optional: per-instance credentials, when different instances use different  #
+# users/passwords. Match on the instance label (see `-l`), its socket path,   #
+# its port, or its cnf path. First match wins; falls through to the globals   #
+# above when nothing matches. Format of the echoed value: user<TAB>password   #
+###############################################################################
+creds_for_instance() {
+    local label="$1" socket="$2" port="$3" cnf="$4"
+    case "${label}|${socket}|${port}|${cnf}" in
+        # --- examples, uncomment and adapt -----------------------------------
+        # *"|3307|"*)            printf 'scom_mon\tPassForPort3307' ;;
+        # "prod_db|"*)           printf 'scom_mon\tPassForProd'     ;;
+        # *"/etc/mysql/qa.cnf")  printf 'qa_monitor\tQaPass'        ;;
+        *) return 1 ;;
+    esac
+}
+###############################################################################
 
 #------------------------------- Defaults --------------------------------------
 THRESHOLD=80          # alert percentage
@@ -48,6 +82,27 @@ LIST_ONLY=0
 VERBOSE=0
 MAX_INCLUDE_DEPTH=10
 
+#--------------------- private temp option file (0600) --------------------------
+# Created eagerly in the PARENT shell so the EXIT trap always knows the path -
+# make_cred_file() runs inside command substitution (a subshell), so a lazily
+# assigned path would never reach the trap and the file would be left behind.
+TMP_CNF="$(mktemp "${TMPDIR:-/tmp}/.mysqlmon.XXXXXXXX" 2>/dev/null)" || TMP_CNF=""
+[ -n "${TMP_CNF}" ] && chmod 600 "${TMP_CNF}" 2>/dev/null
+cleanup() { [ -n "${TMP_CNF}" ] && rm -f "${TMP_CNF}"; return 0; }
+trap cleanup EXIT INT TERM HUP
+
+# make_cred_file <user> <password>  -> path of the 0600 option file
+make_cred_file() {
+    local u="$1" p="$2"
+    [ -n "${TMP_CNF}" ] || return 1
+    {
+        echo "[client]"
+        echo "user=${u}"
+        [ -n "${p}" ] && echo "password=\"${p}\""
+    } > "${TMP_CNF}"
+    printf '%s' "${TMP_CNF}"
+}
+
 SCRIPT_NAME="$(basename "$0")"
 
 usage() {
@@ -58,22 +113,37 @@ Usage: ${SCRIPT_NAME} [options]
   -t <seconds>  MySQL connect timeout             (default: ${CONNECT_TIMEOUT})
   -T <seconds>  Hard timeout per instance         (default: ${HARD_TIMEOUT})
   -i <filter>   Only check instances whose id/socket/port/cnf matches <filter>
-  -e <file>     Extra credentials file (--defaults-extra-file), if the running
-                OS user cannot authenticate via unix socket
+  -u <user>     MySQL monitoring user (overrides MYSQL_USER at top of script)
+  -e <file>     Ready-made option file with the credentials, used as
+                --defaults-extra-file. Highest priority. Example content:
+                    [client]
+                    user=scom_monitor
+                    password=SomeStrongPassword
   -l            List discovered instances and exit (no checks, exit 0)
   -v            Verbose: print discovery details to stderr
   -h            This help
+
+Password sources, in priority order:
+  1. -e <file>
+  2. creds_for_instance() at the top of this script (per-instance)
+  3. MYSQL_USER / MYSQL_PASSWORD at the top of this script,
+     or the MYSQL_MON_USER / MYSQL_MON_PASSWORD environment variables
+  4. nothing -> OS socket auth, plus ~/.my.cnf of the user running the script
+
+There is deliberately no -p flag: a password given on the command line is
+visible to every user on the box via ps.
 
 Exit codes: 0 = OK, 1 = threshold exceeded, 2 = unknown / error
 EOF
 }
 
-while getopts ":w:t:T:i:e:lvh" opt; do
+while getopts ":w:t:T:i:u:e:lvh" opt; do
     case "${opt}" in
         w) THRESHOLD="${OPTARG}" ;;
         t) CONNECT_TIMEOUT="${OPTARG}" ;;
         T) HARD_TIMEOUT="${OPTARG}" ;;
         i) FILTER="${OPTARG}" ;;
+        u) MYSQL_USER="${OPTARG}" ;;
         e) EXTRA_CRED_FILE="${OPTARG}" ;;
         l) LIST_ONLY=1 ;;
         v) VERBOSE=1 ;;
@@ -279,13 +349,43 @@ discover_instances() {
 }
 
 #=============================== QUERY =========================================
-# run_mysql <socket> <port> ; SQL comes from stdin-less -e argument
+# resolve_creds <label> <socket> <port> <cnf>
+# Echoes the --defaults-extra-file argument to use (may be empty).
+resolve_creds() {
+    local label="$1" socket="$2" port="$3" cnf="$4"
+    local pair u p
+
+    # 1. explicit -e file wins
+    if [ -n "${EXTRA_CRED_FILE}" ]; then
+        printf '%s' "--defaults-extra-file=${EXTRA_CRED_FILE}"
+        return 0
+    fi
+
+    # 2. per-instance credentials
+    if pair="$(creds_for_instance "${label}" "${socket}" "${port}" "${cnf}")"; then
+        u="${pair%%$'\t'*}"; p="${pair#*$'\t'}"
+        [ "${p}" = "${pair}" ] && p=""
+        printf '%s' "--defaults-extra-file=$(make_cred_file "${u}" "${p}")"
+        return 0
+    fi
+
+    # 3. global user/password
+    if [ -n "${MYSQL_USER}" ]; then
+        printf '%s' "--defaults-extra-file=$(make_cred_file "${MYSQL_USER}" "${MYSQL_PASSWORD}")"
+        return 0
+    fi
+
+    # 4. nothing -> socket auth + the caller's ~/.my.cnf
+    printf ''
+}
+
+# run_mysql <socket> <port> <sql> <cred-arg>
 run_mysql() {
-    local socket="$1" port="$2" sql="$3"
+    local socket="$1" port="$2" sql="$3" cred="${4:-}"
     local -a args=()
 
     # --defaults-extra-file must be the first argument if used.
-    [ -n "${EXTRA_CRED_FILE}" ] && args+=( "--defaults-extra-file=${EXTRA_CRED_FILE}" )
+    [ -n "${cred}" ] && args+=( "${cred}" )
 
     if [ -n "${socket}" ] && [ "${socket}" != "-" ]; then
         args+=( "--protocol=SOCKET" "--socket=${socket}" )
@@ -348,9 +448,12 @@ while IFS=$'\t' read -r PID CNF SOCKET PORT HOST LABEL; do
     TOTAL=$((TOTAL + 1))
     log "instance ${LABEL}: pid=${PID} socket=${SOCKET} port=${PORT} cnf=${CNF}"
 
-    RAW="$(run_mysql "${SOCKET}" "${PORT}" "${SQL_PS}")"; RC=$?
+    CRED="$(resolve_creds "${LABEL}" "${SOCKET}" "${PORT}" "${CNF}")"
+    log "instance ${LABEL}: creds=${CRED:-<socket auth>}"
+
+    RAW="$(run_mysql "${SOCKET}" "${PORT}" "${SQL_PS}" "${CRED}")"; RC=$?
     if [ ${RC} -ne 0 ]; then
-        RAW="$(run_mysql "${SOCKET}" "${PORT}" "${SQL_SHOW}")"; RC=$?
+        RAW="$(run_mysql "${SOCKET}" "${PORT}" "${SQL_SHOW}" "${CRED}")"; RC=$?
     fi
 
     if [ ${RC} -ne 0 ]; then
