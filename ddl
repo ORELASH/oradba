@@ -2,28 +2,35 @@
 #===============================================================================
 # check_mysql_conn_min.sh - minimal MySQL connection-usage check for SCOM
 #
-# Checks only the instances listed below. Alerts above THRESHOLD percent.
+# You point it at the CNF file of each instance. It reads socket/port out of
+# them (following !include / !includedir) and checks only those instances.
 #
-# Exit: 0 = OK | 1 = above threshold | 2 = error
+# Exit: 0 = OK | 1 = at or above threshold | 2 = error
 #===============================================================================
 
 ###############################################################################
 #                         >>>  CONFIGURE HERE  <<<                            #
 ###############################################################################
 
-# One instance per line. Each line may be:
-#   /path/to/mysql.sock   - a unix socket
-#   3306                  - a TCP port on 127.0.0.1
-#   /etc/my.cnf           - a cnf file; socket= / port= are read out of THAT
-#                           file only (!include / !includedir are not followed)
+# One CNF file per line - the same file the instance was started with.
+#
+#   /etc/my.cnf                 plain: socket/port taken from [mysqld]/[server]
+#   /etc/my-multi.cnf:mysqld7   mysqld_multi: read group [mysqld7] first
+#
+# !include and !includedir inside the file ARE followed, so pointing at
+# /etc/mysql/my.cnf works even when socket= lives in conf.d/.
 # Blank lines and lines starting with # are ignored.
 INSTANCES="
-/var/lib/mysql/mysql.sock
-/var/lib/mysql2/mysql.sock
-3308
+/etc/my.cnf
+/etc/mysql/inst2.cnf
 "
 
 THRESHOLD=80        # alert at or above this percentage
+
+# 1 = print NOTHING and exit 0 when every instance is below the threshold.
+#     Only instances at/above THRESHOLD (or that failed) produce output.
+# 0 = always print a line per instance (useful when testing by hand).
+QUIET_OK=1
 
 # Leave both empty for OS socket auth (script running as root / mysql).
 MYSQL_USER=""
@@ -33,12 +40,54 @@ MYSQL_PASSWORD=""
 
 set -u
 export LC_ALL=C
-
 CONNECT_TIMEOUT=5
 
-# --- credentials: written to a private 0600 file, never passed via ps --------
+#--- flatten a cnf, following !include / !includedir ---------------------------
+flatten() {
+    local f="$1" d="${2:-0}" line t x
+    [ "${d}" -gt 5 ] && return 0
+    [ -f "${f}" ] && [ -r "${f}" ] || return 0
+    while IFS= read -r line || [ -n "${line}" ]; do
+        case "${line}" in
+            '!include '*|'!include	'*)
+                t="$(printf '%s' "${line#\!include}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+                flatten "${t}" $((d + 1)) ;;
+            '!includedir '*|'!includedir	'*)
+                t="$(printf '%s' "${line#\!includedir}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+                for x in "${t}"/*.cnf "${t}"/*.conf; do
+                    [ -f "${x}" ] && flatten "${x}" $((d + 1))
+                done ;;
+            *) printf '%s\n' "${line}" ;;
+        esac
+    done < "${f}"
+}
+
+#--- cnf_get <flattened-text> <key> <section>... : last match wins -------------
+cnf_get() {
+    local text="$1" key="$2"; shift 2
+    printf '%s\n' "${text}" | awk -v want="${key}" -v secs="$*" '
+        BEGIN { gsub(/-/, "_", want); want = tolower(want)
+                n = split(secs, a, /[ \t]+/)
+                for (i = 1; i <= n; i++) { s = tolower(a[i]); gsub(/-/, "_", s); ok[s] = 1 } }
+        { l = $0; sub(/^[ \t]+/, "", l); sub(/[ \t]+$/, "", l)
+          if (l == "" || l ~ /^[#;]/) next
+          if (l ~ /^\[/) { s = l; sub(/^\[[ \t]*/, "", s); sub(/[ \t]*\].*$/, "", s)
+                           cur = tolower(s); gsub(/-/, "_", cur); next }
+          if (!(cur in ok)) next
+          sub(/[ \t]+[#;].*$/, "", l)
+          e = index(l, "="); if (e == 0) next
+          k = substr(l, 1, e - 1); v = substr(l, e + 1)
+          sub(/^[ \t]+/, "", k); sub(/[ \t]+$/, "", k)
+          sub(/^[ \t]+/, "", v); sub(/[ \t]+$/, "", v)
+          k = tolower(k); gsub(/-/, "_", k); sub(/^loose_/, "", k)
+          if (k != want) next
+          if (v ~ /^".*"$/ || v ~ /^'"'"'.*'"'"'$/) v = substr(v, 2, length(v) - 2)
+          r = v }
+        END { print r }'
+}
+
+#--- credentials: private 0600 file, never visible in ps -----------------------
 CRED=""
-TMP_CNF=""
 if [ -n "${MYSQL_USER}" ]; then
     TMP_CNF="$(mktemp "${TMPDIR:-/tmp}/.mysqlmon.XXXXXX")" || { echo "UNKNOWN - mktemp failed"; exit 2; }
     chmod 600 "${TMP_CNF}"
@@ -57,20 +106,31 @@ SQL="SHOW GLOBAL VARIABLES LIKE 'max_connections';
 TOTAL=0; ALERTS=0; ERRORS=0; DETAILS=""; WORST=-1; WORST_TXT="n/a"
 
 while read -r ENTRY; do
-    ENTRY="${ENTRY%%#*}"; ENTRY="$(echo "${ENTRY}" | tr -d '[:space:]')"
+    ENTRY="${ENTRY%%#*}"
+    ENTRY="$(printf '%s' "${ENTRY}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
     [ -z "${ENTRY}" ] && continue
     TOTAL=$((TOTAL + 1))
 
-    # --- decide how to connect ------------------------------------------------
-    case "${ENTRY}" in
-        *.cnf|*.conf)
-            SOCK="$(awk -F= '/^[[:space:]]*socket[[:space:]]*=/ {gsub(/[[:space:]"'"'"']/,"",$2); s=$2} END{print s}' "${ENTRY}" 2>/dev/null)"
-            PORT="$(awk -F= '/^[[:space:]]*port[[:space:]]*=/   {gsub(/[[:space:]"'"'"']/,"",$2); p=$2} END{print p}' "${ENTRY}" 2>/dev/null)"
-            LABEL="$(basename "${ENTRY}")"; LABEL="${LABEL%.*}"
-            ;;
-        /*) SOCK="${ENTRY}"; PORT=""; LABEL="$(basename "${ENTRY}" .sock)" ;;
-        *)  SOCK="";         PORT="${ENTRY}"; LABEL="port${ENTRY}" ;;
-    esac
+    # optional ":group" suffix for mysqld_multi
+    CNF="${ENTRY%%:*}"; GROUP=""
+    [ "${ENTRY}" != "${CNF}" ] && GROUP="${ENTRY#*:}"
+    LABEL="$(basename "${CNF}")"; LABEL="${LABEL%.*}"
+    [ -n "${GROUP}" ] && LABEL="${LABEL}:${GROUP}"
+
+    if [ ! -r "${CNF}" ]; then
+        ERRORS=$((ERRORS + 1))
+        DETAILS="${DETAILS}UNKNOWN  [${LABEL}] cnf not readable: ${CNF}"$'\n'
+        continue
+    fi
+
+    FLAT="$(flatten "${CNF}")"
+    SOCK=""; PORT=""
+    if [ -n "${GROUP}" ]; then                       # explicit group wins
+        SOCK="$(cnf_get "${FLAT}" socket "${GROUP}")"
+        PORT="$(cnf_get "${FLAT}" port   "${GROUP}")"
+    fi
+    [ -z "${SOCK}" ] && SOCK="$(cnf_get "${FLAT}" socket mysqld server mysqld_safe client client-server)"
+    [ -z "${PORT}" ] && PORT="$(cnf_get "${FLAT}" port   mysqld server mysqld_safe client client-server)"
 
     if [ -n "${SOCK}" ]; then
         CONN=( --protocol=SOCKET "--socket=${SOCK}" ); WHERE="socket=${SOCK}"
@@ -78,17 +138,16 @@ while read -r ENTRY; do
         CONN=( --protocol=TCP --host=127.0.0.1 "--port=${PORT}" ); WHERE="127.0.0.1:${PORT}"
     else
         ERRORS=$((ERRORS + 1))
-        DETAILS="${DETAILS}UNKNOWN  [${LABEL}] no socket or port found in ${ENTRY}"$'\n'
+        DETAILS="${DETAILS}UNKNOWN  [${LABEL}] no socket= or port= found in ${CNF}"$'\n'
         continue
     fi
 
-    # --- query ----------------------------------------------------------------
     RAW="$(timeout 15 mysql ${CRED:+"${CRED}"} "${CONN[@]}" \
              "--connect-timeout=${CONNECT_TIMEOUT}" -NBs -e "${SQL}" 2>&1)"
     RC=$?
 
     if [ ${RC} -ne 0 ]; then
-        # ERROR 1040 proves the instance is full - that is CRITICAL, not unknown.
+        # ERROR 1040 proves the instance is full - CRITICAL, not unknown.
         if echo "${RAW}" | grep -qE '1040|Too many connections'; then
             ALERTS=$((ALERTS + 1))
             [ 1000 -gt ${WORST} ] && { WORST=1000; WORST_TXT="${LABEL} refused connections (limit reached)"; }
@@ -113,11 +172,11 @@ while read -r ENTRY; do
     X10=$(( CURC * 1000 / MAXC ))
     PCT="$(( X10 / 10 )).$(( X10 % 10 ))"
     PK10=$(( PEAKC * 1000 / MAXC ))
-    LINE="[${LABEL}] used=${CURC} max=${MAXC} free=$(( MAXC - CURC )) usage=${PCT}% peak=${PEAKC} ($(( PK10 / 10 )).$(( PK10 % 10 ))%) ${WHERE}"
+    LINE="[${LABEL}] used=${CURC} max=${MAXC} free=$(( MAXC - CURC )) usage=${PCT}% peak=${PEAKC} ($(( PK10 / 10 )).$(( PK10 % 10 ))%) ${WHERE} cnf=${CNF}"
 
     if [ ${X10} -ge $(( THRESHOLD * 10 )) ]; then
         ALERTS=$((ALERTS + 1)); DETAILS="${DETAILS}CRITICAL ${LINE}"$'\n'
-    else
+    elif [ "${QUIET_OK}" -ne 1 ]; then
         DETAILS="${DETAILS}OK       ${LINE}"$'\n'
     fi
     [ ${X10} -gt ${WORST} ] && { WORST=${X10}; WORST_TXT="${LABEL} at ${PCT}% (${CURC}/${MAXC})"; }
@@ -134,6 +193,10 @@ fi
 if [ ${ERRORS} -gt 0 ]; then
     echo "UNKNOWN - ${ERRORS}/${TOTAL} MySQL instance(s) could not be queried"
     printf '%s' "${DETAILS}"; exit 2
+fi
+# Everything is below the threshold: stay completely silent when QUIET_OK=1.
+if [ "${QUIET_OK}" -eq 1 ]; then
+    exit 0
 fi
 echo "OK - all ${TOTAL} MySQL instance(s) below ${THRESHOLD}%; highest: ${WORST_TXT}"
 printf '%s' "${DETAILS}"; exit 0
