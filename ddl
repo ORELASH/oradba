@@ -1,71 +1,112 @@
-#!/bin/bash
-# MySQL connection usage check for SCOM.
-# Prints the instance name only when it is at/above THRESHOLD or unreachable.
-# Silent + exit 0 when everything is fine.  Exit 1 = over threshold, 2 = error.
+#!/usr/bin/env python3
+"""
+Extract the TLS certificate from a Microsoft SQL Server.
+SQL Server wraps TLS inside the TDS protocol, so plain `openssl s_client`
+cannot fetch the certificate. This script performs a TDS Pre-Login
+handshake and then a TLS handshake wrapped in TDS packets.
 
-###############################  CONFIGURE  ###################################
-# One instance per line:  NAME=target
-#   NAME=3306                       TCP on 127.0.0.1:3306
-#   NAME=10.0.0.5:3307              TCP on that host and port
-#   NAME=/var/lib/mysql/mysql.sock  unix socket
-INSTANCES="
-PROD1=3306
-PROD2=3307
-"
+Usage:
+    python3 get_sql_cert.py <host> [port]        # prints PEM to stdout
+    python3 get_sql_cert.py <host> [port] > sqlserver.pem
+"""
+import socket
+import ssl
+import struct
+import sys
 
-THRESHOLD=80
+TDS_PRELOGIN = 0x12
 
-MYSQL_USER="scom_monitor"
-MYSQL_PASSWORD="ChangeMe"
-###############################################################################
 
-# Passed through the environment, never on the command line, so the password
-# does not show up in `ps` for every user on the box.
-export MYSQL_PWD="$MYSQL_PASSWORD"
+def tds_packet(ptype: int, payload: bytes) -> bytes:
+    # type, status=EOM, length, spid, packet id, window
+    return struct.pack('>BBHHBB', ptype, 0x01, 8 + len(payload), 0, 0, 0) + payload
 
-STATUS=0
-while read -r LINE; do
-    case "$LINE" in ''|\#*) continue ;; esac
-    NAME=${LINE%%=*}
-    TARGET=${LINE#*=}
 
-    case "$TARGET" in
-        /*)   CONN="--socket=$TARGET" ;;
-        *:*)  CONN="--host=${TARGET%:*} --port=${TARGET##*:}" ;;
-        *)    CONN="--host=127.0.0.1 --port=$TARGET" ;;
-    esac
+def recv_exact(sock: socket.socket, n: int) -> bytes:
+    data = b''
+    while len(data) < n:
+        chunk = sock.recv(n - len(data))
+        if not chunk:
+            raise EOFError('connection closed by server')
+        data += chunk
+    return data
 
-    Q1=$(mysql -u"$MYSQL_USER" $CONN -NBs -e "SHOW GLOBAL VARIABLES LIKE 'max_connections'" 2>&1)
-    Q2=$(mysql -u"$MYSQL_USER" $CONN -NBs -e "SHOW GLOBAL STATUS LIKE 'Threads_connected'"  2>&1)
 
-    # Match on the variable NAME, never just field 2: an error line such as
-    # "ERROR 1040 (HY000): Too many connections" would otherwise yield "1040",
-    # which looks like a valid number and would hide the alert.
-    MAX=$(printf '%s\n' "$Q1" | awk '$1=="max_connections"   {print $2; exit}')
-    CUR=$(printf '%s\n' "$Q2" | awk '$1=="Threads_connected" {print $2; exit}')
+def read_tds_packet(sock: socket.socket) -> bytes:
+    hdr = recv_exact(sock, 8)
+    _ptype, _status, length, _spid, _pid, _win = struct.unpack('>BBHHBB', hdr)
+    return recv_exact(sock, length - 8)
 
-    BAD=0
-    case "$MAX" in ''|*[!0-9]*) BAD=1 ;; esac
-    case "$CUR" in ''|*[!0-9]*) BAD=1 ;; esac
-    [ "$MAX" = 0 ] && BAD=1
-    if [ "$BAD" -eq 1 ]; then
-        # At 100% the server refuses the monitoring connection (ERROR 1040):
-        # that is "full", not "down" - two very different alerts.
-        case "$Q1$Q2" in
-            *1040*|*"Too many connections"*) echo "$NAME - connections FULL (100%)"
-                                             [ "$STATUS" -eq 0 ] && STATUS=1 ;;
-            *)                               echo "$NAME - unreachable"; STATUS=2 ;;
-        esac
-        continue
-    fi
 
-    PCT=$((CUR * 100 / MAX))
-    if [ "$PCT" -ge "$THRESHOLD" ]; then
-        echo "$NAME - $PCT% ($CUR/$MAX)"
-        [ "$STATUS" -eq 0 ] && STATUS=1
-    fi
-done <<EOF
-$INSTANCES
-EOF
+def build_prelogin() -> bytes:
+    # Option table: VERSION (0x00) and ENCRYPTION (0x01), terminated by 0xFF.
+    # Each entry: token(1) offset(2 BE) length(2 BE). Offsets are relative
+    # to the start of the payload.
+    header_len = 5 * 2 + 1
+    version_data = struct.pack('>BBHH', 16, 0, 0, 0)   # fake client version 16.0
+    encryption_data = b'\x01'                          # ENCRYPT_ON
+    entries = (
+        struct.pack('>BHH', 0x00, header_len, len(version_data)) +
+        struct.pack('>BHH', 0x01, header_len + len(version_data), len(encryption_data)) +
+        b'\xff'
+    )
+    return entries + version_data + encryption_data
 
-exit $STATUS
+
+def get_certificate(host: str, port: int) -> str:
+    sock = socket.create_connection((host, port), timeout=15)
+    try:
+        # 1. TDS Pre-Login
+        sock.sendall(tds_packet(TDS_PRELOGIN, build_prelogin()))
+        read_tds_packet(sock)  # server pre-login response (ignored)
+
+        # 2. TLS handshake, wrapped inside TDS packets
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        incoming, outgoing = ssl.MemoryBIO(), ssl.MemoryBIO()
+        tls = ctx.wrap_bio(incoming, outgoing, server_hostname=host)
+
+        while True:
+            try:
+                tls.do_handshake()
+                break
+            except ssl.SSLWantReadError:
+                out = outgoing.read()
+                if out:
+                    sock.sendall(tds_packet(TDS_PRELOGIN, out))
+                incoming.write(read_tds_packet(sock))
+        # flush any final handshake bytes
+        out = outgoing.read()
+        if out:
+            sock.sendall(tds_packet(TDS_PRELOGIN, out))
+
+        der = tls.getpeercert(binary_form=True)
+        if not der:
+            raise RuntimeError('handshake succeeded but no certificate received')
+        return ssl.DER_cert_to_PEM_cert(der)
+    finally:
+        sock.close()
+
+
+def main() -> None:
+    if len(sys.argv) < 2:
+        print(__doc__, file=sys.stderr)
+        sys.exit(2)
+    host = sys.argv[1]
+    port = int(sys.argv[2]) if len(sys.argv) > 2 else 1433
+    pem = get_certificate(host, port)
+    sys.stdout.write(pem)
+    # Print a human-readable summary to stderr so stdout stays clean PEM
+    try:
+        import subprocess
+        subprocess.run(
+            ['openssl', 'x509', '-noout', '-subject', '-issuer', '-dates', '-ext', 'subjectAltName'],
+            input=pem.encode(), stderr=subprocess.DEVNULL, stdout=sys.stderr.buffer,
+        )
+    except Exception:
+        pass
+
+
+if __name__ == '__main__':
+    main()
